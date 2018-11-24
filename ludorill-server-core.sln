@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2050
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ludorill-server-core", "ludorill-server-core\ludorill-server-core.csproj", "{AA16A0DE-A857-4186-9C7D-3CA3A9F3555B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AA16A0DE-A857-4186-9C7D-3CA3A9F3555B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA16A0DE-A857-4186-9C7D-3CA3A9F3555B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA16A0DE-A857-4186-9C7D-3CA3A9F3555B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA16A0DE-A857-4186-9C7D-3CA3A9F3555B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {179A258E-7BC9-46AB-BADE-21E4EAB510BB}
+	EndGlobalSection
+EndGlobal
