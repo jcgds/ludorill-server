@@ -45,7 +45,6 @@ namespace ludorill_server_core
                 {
                     TcpClient testClient = new TcpClient("127.0.0.1", 6969);
                     NetworkStream st = testClient.GetStream();
-                    StreamWriter writer = new StreamWriter(st);
                     while (true)
                     {
                         Console.WriteLine("Username:");
@@ -54,7 +53,10 @@ namespace ludorill_server_core
                             break;
                         Console.WriteLine("Password:");
                         string password = Console.ReadLine();
-                        writer.WriteLine(string.Format("C|REGISTER|{0}|{1}", username, password));
+                        Console.WriteLine("Accion (REGISTER/LOGIN):");
+                        string accion = Console.ReadLine();
+                        StreamWriter writer = new StreamWriter(st);
+                        writer.WriteLine(string.Format("C|{2}|{0}|{1}", username, password, accion));
                         writer.Flush();
                         Console.WriteLine("Mensaje enviado");
                     }

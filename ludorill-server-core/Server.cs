@@ -14,6 +14,7 @@ namespace ludorill_server_core
         public int port = 6969;
         private TcpListener server;
         private List<TcpClient> unloggedClients;
+        private List<TcpClient> loggedClients;
         private List<TcpClient> disconnectedList;
         // private MatchManager matchManager;
         private PlayerDao playerDao;
@@ -23,9 +24,40 @@ namespace ludorill_server_core
         {
             this.playerDao = playerDao;
             unloggedClients = new List<TcpClient>();
+            loggedClients = new List<TcpClient>();
             disconnectedList = new List<TcpClient>();
             server = new TcpListener(IPAddress.Any, port);
             server.Start();
+        }
+
+        /**
+         * Lee los datos disponibles enviados por un cliente y delega su 
+         * procesamiento a la funcion OnIncomingData.
+         * 
+         * Normalmente se colocaria directo en el Listen() pero como tenemos
+         * varias listas de usuarios conectados (logged y unlogged) entonces
+         * podemos reutilizar este codigo.
+         */
+        private void ProcessClient(TcpClient sc)
+        {
+            if (!IsConnected(sc))
+            {
+                sc.Close();
+                disconnectedList.Add(sc);
+            }
+            else
+            {
+                NetworkStream st = sc.GetStream();
+                if (st.DataAvailable)
+                {
+                    StreamReader reader = new StreamReader(st, true);
+                    string data = reader.ReadLine();
+                    if (data != null)
+                    {
+                        OnIncomingData(sc, data);
+                    }
+                }
+            }
         }
 
         public void Listen()
@@ -34,27 +66,16 @@ namespace ludorill_server_core
             Console.WriteLine("Escuchando puerto {0}" + Environment.NewLine, port);
             while (listening)
             {
+                for (int i = 0; i < loggedClients.Count; i++)
+                {
+                    TcpClient sc = loggedClients[i];
+                    ProcessClient(sc);
+                }
+
                 for (int i = 0; i < unloggedClients.Count; i++)
                 {
                     TcpClient sc = unloggedClients[i];
-                    if (!IsConnected(sc))
-                    {
-                        sc.Close();
-                        disconnectedList.Add(sc);
-                    }
-                    else
-                    {
-                        NetworkStream st = sc.GetStream();
-                        if (st.DataAvailable)
-                        {
-                            StreamReader reader = new StreamReader(st, true);
-                            string data = reader.ReadLine();
-                            if (data != null)
-                            {
-                                OnIncomingData(sc, data);
-                            }
-                        }
-                    }
+                    ProcessClient(sc);
                 }
 
                 for (int i = 0; i < disconnectedList.Count; i++)
@@ -83,13 +104,21 @@ namespace ludorill_server_core
             TcpClient client =listener.EndAcceptTcpClient(ar);
             unloggedClients.Add(client);
             
-            Console.WriteLine("Conexion establecida con cliente. Clientes conectados: {0}", unloggedClients.Count - disconnectedList.Count);
+            Console.WriteLine("Conexion establecida con cliente. Clientes conectados: {0}", AmountOfClients());
             StartListening();
         }
 
-        public void Broadcast(string data, List<TcpClient> unloggedClients)
+        private int AmountOfClients()
         {
-            foreach(TcpClient sc in unloggedClients)
+            return unloggedClients.Count + loggedClients.Count - disconnectedList.Count;
+        }
+
+        /*
+         * Metodo para enviar un mensaje a una lista de clientes.
+         */
+        public void Broadcast(string data, List<TcpClient> clients)
+        {
+            foreach(TcpClient sc in clients)
             {
                 try
                 {
@@ -103,6 +132,9 @@ namespace ludorill_server_core
             }
         }
 
+        /*
+         * Metodo para enviar un mensaje a un solo cliente.
+         */
         public void Broadcast(string data, TcpClient client)
         {
             var clientTempList = new List<TcpClient>();
@@ -110,6 +142,9 @@ namespace ludorill_server_core
             Broadcast(data, clientTempList);
         }
 
+        /*
+         * Encargado de procesar las instrucciones recibidas
+         */
         public void OnIncomingData(TcpClient source, string data)
         {
             Console.WriteLine("Mensaje recibido: {0}", data);
@@ -121,19 +156,10 @@ namespace ludorill_server_core
                 case "LOGIN":
                     if (split.Length < 4)
                     {
-                        Console.WriteLine("Intento de login fallido <");
+                        Console.WriteLine("Mensaje incompleto");
                         Broadcast("S|LOGIN|FAIL", source);
                     }
-
-                    if (!ValidCredentials(split[1], split[2]))
-                    {
-                        Console.WriteLine("Intento de login fallido");
-                        Broadcast("S|LOGIN|FAIL", source);
-                    } else
-                    {
-                        Console.WriteLine("Login exitoso");
-                        Broadcast("S|LOGIN|SUCCESS", source);
-                    }
+                    HandleLogin(source, split[2], split[3]);
                     break;
 
                 case "REGISTER":
@@ -182,6 +208,32 @@ namespace ludorill_server_core
             catch
             {
                 return false;
+            }
+        }
+
+        private void HandleLogin(TcpClient source, string username, string password)
+        {
+            if (loggedClients.Contains(source))
+            {
+                Console.WriteLine("Client already logged in");
+                return;
+            }
+
+            if (!ValidCredentials(username, password))
+            {
+                Console.WriteLine("Intento de login fallido");
+                Broadcast("S|LOGIN|FAIL", source);
+            }
+            else
+            {
+                Console.WriteLine("Login exitoso");
+                Broadcast("S|LOGIN|SUCCESS", source);
+                Console.WriteLine("Unlogged before rm: " + unloggedClients.Count);
+                unloggedClients.Remove(source);
+                Console.WriteLine("Unlogged after rm: " + unloggedClients.Count);
+
+                loggedClients.Add(source);
+                Console.WriteLine("logged: " + loggedClients.Count);
             }
         }
     }

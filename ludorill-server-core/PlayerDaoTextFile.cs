@@ -32,7 +32,6 @@ namespace ludorill_server_core
                 string s = "";
                 while ((s = sr.ReadLine()) != null)
                 {
-                    Console.WriteLine(s);
                     Player p = LineToPlayer(s);
                     if (p.username == username)
                         return p;
