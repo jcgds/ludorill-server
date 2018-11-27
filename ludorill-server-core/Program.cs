@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace ludorill_server_core
 {
@@ -10,13 +12,16 @@ namespace ludorill_server_core
         {
             Console.WriteLine("1. Correr servidor");
             Console.WriteLine("2. Correr cliente de prueba");
-            int c = Console.Read();
-            if (c - '0' == 1)
+            string c = Console.ReadLine();
+            if (c == "1")
             {
                 Console.WriteLine("Iniciando servidor...");
+                PlayerDao playerDao = new PlayerDaoTextFile();
                 // TODO: Manejar error puerto en uso
-                Server s = new Server();
-                s.StartListening();
+                Server s = new Server(playerDao);
+                s.Listen();
+                /*
+                Thread t = new Thread(new ThreadStart(s.Listen));
                 int seleccion2 = -1;
                 while (seleccion2 != 0)
                 {
@@ -27,21 +32,33 @@ namespace ludorill_server_core
                     Console.WriteLine("3. Partidas");
                     Console.WriteLine("0. Salir");
                     seleccion2 = Console.Read() - '0';
-                    switch(seleccion2)
-                    {
 
+                    switch (seleccion2)
+                    {
+                        case 0:
+                            break;
                     }
-                }
+                }*/
             } else
             {
                 try
                 {
                     TcpClient testClient = new TcpClient("127.0.0.1", 6969);
                     NetworkStream st = testClient.GetStream();
-                    Byte[] data = System.Text.Encoding.ASCII.GetBytes("Hola soy un cliente");
-                    st.Write(data, 0, data.Length);
-                    Console.WriteLine("Mensaje enviado");
-                    Console.ReadKey();
+                    StreamWriter writer = new StreamWriter(st);
+                    while (true)
+                    {
+                        Console.WriteLine("Username:");
+                        string username = Console.ReadLine();
+                        if (username == "chao")
+                            break;
+                        Console.WriteLine("Password:");
+                        string password = Console.ReadLine();
+                        writer.WriteLine(string.Format("C|REGISTER|{0}|{1}", username, password));
+                        writer.Flush();
+                        Console.WriteLine("Mensaje enviado");
+                    }
+                    Console.WriteLine("Cerrando");
                     st.Close();
                     testClient.Close();
                 }

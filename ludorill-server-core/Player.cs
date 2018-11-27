@@ -4,21 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
-
+using System.IO;
 
 namespace ludorill_server_core
 {
     class Player
     {
-        private string username;
-        public Animal animalType;
-        private TcpClient tcp;
-        private int[] movementsPerCharacter = { 0, 0, 0, 0 };
+        public string username;
+        public string password;
+        public TcpClient socket;
 
-        public Player(string username, Animal animalType)
+        public Player(string username, string password)
         {
             this.username = username;
-            this.animalType = animalType;
+            this.password = password;
+        }
+
+        public bool TryPassword(string password)
+        {
+            return this.password == password;
         }
     }
 }

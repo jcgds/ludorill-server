@@ -9,11 +9,19 @@ namespace ludorill_server_core
 {
     class Match
     {
-        private List<Player> players;
+        private Player[] players;
+        private Player currentPlayer;
 
         public bool IsHosting(TcpClient client)
         {
             throw new NotImplementedException();
         }
+    }
+
+    class MatchPlayer
+    {
+        Player player;
+        Animal selectedAnimal;
+        // Movimientos / posiciones de fichas
     }
 }
