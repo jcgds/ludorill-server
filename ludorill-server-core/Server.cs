@@ -18,7 +18,6 @@ namespace ludorill_server_core
         private List<TcpClient> disconnectedList;
         private MatchManager matchManager;
         private PlayerDao playerDao;
-        private bool listening = false;
 
         public Server(PlayerDao playerDao)
         {
@@ -65,7 +64,7 @@ namespace ludorill_server_core
         {
             StartListening();
             Console.WriteLine("Escuchando puerto {0}" + Environment.NewLine, port);
-            while (listening)
+            while (true)
             {
                 for (int i = 0; i < loggedClients.Count; i++)
                 {
@@ -91,12 +90,8 @@ namespace ludorill_server_core
         }
 
         public void StartListening()
-        {
-            if (listening)
-                return;
-       
+        { 
             server.BeginAcceptTcpClient(AcceptTcpClient, server);
-            listening = true;
         }
 
         private void AcceptTcpClient(IAsyncResult ar)
