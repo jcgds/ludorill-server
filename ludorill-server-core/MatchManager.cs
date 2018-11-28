@@ -1,28 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
 using System.Text;
 
 namespace ludorill_server_core
 {
     class MatchManager
     {
-        List<Match> matches;
+        private List<Match> matches = new List<Match>();
+        private int matchIdSequence = 0;
 
-        public Match Locate(TcpClient client)
+        public Match CreateMatch(Player creator, Animal selection)
         {
-            foreach (Match m in matches)
+            if (IsAlreadyInAMatch(creator))
             {
-                if (m.IsHosting(client))
-                    return m;
+                Console.WriteLine("Cant create new match, user is already in a game.");
+                throw new PlayerAlreadyInGameException();
+            } else
+            {
+                Match m = new Match(matchIdSequence++);
+                m.Join(creator);
+                matches.Add(m);
+                return m;
+            }
+        }
+
+        /*
+         * Indica si un jugador ya pertenece a alguna partida.
+         */
+        private bool IsAlreadyInAMatch(Player p)
+        {
+            foreach(Match m in matches)
+            {
+                if (m.Has(p))
+                    return true;
             }
 
-            throw new ArgumentException("Client is not in any match");
+            return false;
         }
 
-        public void CreateMatch()
-        {
-
-        }
     }
 }

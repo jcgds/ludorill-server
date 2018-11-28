@@ -47,16 +47,12 @@ namespace ludorill_server_core
                     NetworkStream st = testClient.GetStream();
                     while (true)
                     {
-                        Console.WriteLine("Username:");
-                        string username = Console.ReadLine();
-                        if (username == "chao")
+                        Console.WriteLine(Environment.NewLine + "Escribe el comando: ");
+                        string comando = Console.ReadLine();
+                        if (comando == "BYE")
                             break;
-                        Console.WriteLine("Password:");
-                        string password = Console.ReadLine();
-                        Console.WriteLine("Accion (REGISTER/LOGIN):");
-                        string accion = Console.ReadLine();
                         StreamWriter writer = new StreamWriter(st);
-                        writer.WriteLine(string.Format("C|{2}|{0}|{1}", username, password, accion));
+                        writer.WriteLine(comando);
                         writer.Flush();
                         Console.WriteLine("Mensaje enviado");
                     }
@@ -64,7 +60,7 @@ namespace ludorill_server_core
                     st.Close();
                     testClient.Close();
                 }
-                catch (SocketException e)
+                catch (SocketException)
                 {
                     Console.WriteLine("Error conectando a servidor");
                     Console.ReadKey();

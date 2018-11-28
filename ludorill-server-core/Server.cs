@@ -14,9 +14,9 @@ namespace ludorill_server_core
         public int port = 6969;
         private TcpListener server;
         private List<TcpClient> unloggedClients;
-        private List<TcpClient> loggedClients;
+        private List<Player> loggedClients;
         private List<TcpClient> disconnectedList;
-        // private MatchManager matchManager;
+        private MatchManager matchManager;
         private PlayerDao playerDao;
         private bool listening = false;
 
@@ -24,8 +24,9 @@ namespace ludorill_server_core
         {
             this.playerDao = playerDao;
             unloggedClients = new List<TcpClient>();
-            loggedClients = new List<TcpClient>();
+            loggedClients = new List<Player>();
             disconnectedList = new List<TcpClient>();
+            matchManager = new MatchManager();
             server = new TcpListener(IPAddress.Any, port);
             server.Start();
         }
@@ -68,7 +69,7 @@ namespace ludorill_server_core
             {
                 for (int i = 0; i < loggedClients.Count; i++)
                 {
-                    TcpClient sc = loggedClients[i];
+                    TcpClient sc = loggedClients[i].socket;
                     ProcessClient(sc);
                 }
 
@@ -175,6 +176,42 @@ namespace ludorill_server_core
                         Console.WriteLine("Failed register");
                     }              
                     break;
+
+                case "MATCH":
+                    try
+                    {
+                        Player player = GetLoggedPlayerBy(source);
+                        switch (split[2])
+                        {
+                            // C|MATCH|CREATE|:animalSelection --respuesta--> S|MATCH|CREATED|:id (|:nPlayers?)
+                            case "CREATE":
+                                try
+                                {
+                                    Animal selection = (Animal) Convert.ToInt16(split[3]);
+                                    Console.WriteLine("Animal selection: " + selection);
+                                    Match m = matchManager.CreateMatch(player, selection);
+                                    Console.WriteLine("Successfully created match with id: " + m.id);
+                                    Broadcast(string.Format("S|MATCH|CREATED|{0}", m.id), player.socket);
+                                }
+                                catch (PlayerAlreadyInGameException)
+                                {
+                                    Console.WriteLine("Player already in match");
+                                    Broadcast("S|ERROR|ALREADY_IN_MATCH", source);
+                                }
+                                break;
+
+                            // C|MATCH|JOIN|:id --respuesta--> S|MATCH|JOINED|:id (|:nPlayers?)
+                            case "JOIN":
+                                // Cada vez que un jugador se una, hay que avisar a todos los demas miembros de la partida
+                                break;
+                        }
+
+                    } catch (ArgumentException)
+                    {
+                        Console.WriteLine("Non-logged user triying to join match");
+                        Broadcast("S|ERROR|NEEDS_LOGIN", source);
+                    }
+                    break;
             }
         }
 
@@ -199,42 +236,53 @@ namespace ludorill_server_core
             }
         }
 
-        private bool ValidCredentials(string username, string password) {
+        private void HandleLogin(TcpClient source, string username, string password)
+        {
+            foreach(Player logged in loggedClients)
+            {
+                if (logged.socket == source)
+                {
+                    Console.WriteLine("Client already logged in");
+                    return;
+                }
+            }
+
             try
             {
                 Player p = playerDao.GetPlayer(username);
-                return p.TryPassword(password);
+                if (!p.TryPassword(password))
+                {
+                    Console.WriteLine("Intento de login fallido");
+                    Broadcast("S|LOGIN|FAIL", source);
+                }
+                else
+                {
+                    p.socket = source;
+                    Console.WriteLine("Login exitoso");
+                    Broadcast("S|LOGIN|SUCCESS", source);
+                    Console.WriteLine("Unlogged before rm: " + unloggedClients.Count);
+                    unloggedClients.Remove(source);
+                    Console.WriteLine("Unlogged after rm: " + unloggedClients.Count);
+
+                    loggedClients.Add(p);
+                    Console.WriteLine("logged: " + loggedClients.Count);
+                }
             }
             catch
             {
-                return false;
+                Broadcast("S|LOGIN|FAIL", source);
             }
         }
 
-        private void HandleLogin(TcpClient source, string username, string password)
+        private Player GetLoggedPlayerBy(TcpClient client)
         {
-            if (loggedClients.Contains(source))
+            foreach(Player p in loggedClients)
             {
-                Console.WriteLine("Client already logged in");
-                return;
+                if (p.socket == client)
+                    return p;
             }
 
-            if (!ValidCredentials(username, password))
-            {
-                Console.WriteLine("Intento de login fallido");
-                Broadcast("S|LOGIN|FAIL", source);
-            }
-            else
-            {
-                Console.WriteLine("Login exitoso");
-                Broadcast("S|LOGIN|SUCCESS", source);
-                Console.WriteLine("Unlogged before rm: " + unloggedClients.Count);
-                unloggedClients.Remove(source);
-                Console.WriteLine("Unlogged after rm: " + unloggedClients.Count);
-
-                loggedClients.Add(source);
-                Console.WriteLine("logged: " + loggedClients.Count);
-            }
+            throw new ArgumentException("Client is not logged in.");
         }
     }
 }
