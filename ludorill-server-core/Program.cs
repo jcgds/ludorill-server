@@ -16,7 +16,7 @@ namespace ludorill_server_core
             if (c == "1")
             {
                 Console.WriteLine("Iniciando servidor...");
-                PlayerDao playerDao = new PlayerDaoTextFile();
+                IPlayerDao playerDao = new PlayerDaoTextFile();
                 // TODO: Manejar error puerto en uso
                 Server s = new Server(playerDao);
                 s.Listen();

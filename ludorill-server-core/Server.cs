@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using ludorill_server_core.Exceptions;
 
 namespace ludorill_server_core
 {
@@ -17,9 +18,9 @@ namespace ludorill_server_core
         private List<Player> loggedClients;
         private List<TcpClient> disconnectedList;
         private MatchManager matchManager;
-        private PlayerDao playerDao;
+        private IPlayerDao playerDao;
 
-        public Server(PlayerDao playerDao)
+        public Server(IPlayerDao playerDao)
         {
             this.playerDao = playerDao;
             unloggedClients = new List<TcpClient>();
@@ -145,7 +146,9 @@ namespace ludorill_server_core
         {
             Console.WriteLine("Mensaje recibido: {0}", data);
             string[] split = data.Split('|');
-            // TODO: Validar length de split
+
+            if (split.Length < 1)
+                return;
 
             switch(split[1])
             {
@@ -182,10 +185,12 @@ namespace ludorill_server_core
                             case "CREATE":
                                 try
                                 {
-                                    Animal selection = (Animal) Convert.ToInt16(split[3]);
+                                    // TODO: Esta conversion puede dar error, manejarlo
+                                    Animal selection = (Animal)Convert.ToInt16(split[3]);
                                     Console.WriteLine("Animal selection: " + selection);
                                     Match m = matchManager.CreateMatch(player, selection);
                                     Console.WriteLine("Successfully created match with id: " + m.id);
+                                    // TODO: Tal vez se deberia avisar que se creo una partida a todos los clientes conectados
                                     Broadcast(string.Format("S|MATCH|CREATED|{0}", m.id), player.socket);
                                 }
                                 catch (PlayerAlreadyInGameException)
@@ -195,9 +200,35 @@ namespace ludorill_server_core
                                 }
                                 break;
 
-                            // C|MATCH|JOIN|:id --respuesta--> S|MATCH|JOINED|:id (|:nPlayers?)
+                            // C|MATCH|JOIN|:id|:animalSelection --respuesta--> S|MATCH|JOINED|:matchId|:username|:nPlayers
                             case "JOIN":
-                                // Cada vez que un jugador se una, hay que avisar a todos los demas miembros de la partida
+                                int matchId = Convert.ToInt16(split[3]);
+                                Animal animal = (Animal)Convert.ToInt16(split[4]);
+                                try
+                                {
+                                    Match m = matchManager.JoinMatch(matchId, player, animal);
+                                    string message = string.Format("S|MATCH|JOINED|{0}|{1}|{2}", m.id, player.username, m.players.Count);
+                                    Console.WriteLine("Sent: " + message);
+                                    // Cada vez que un jugador se una, hay que avisar a todos los demas miembros de la partida
+                                    Broadcast(message, PlayerListToClientList(m.players));
+                                }
+                                catch (Exception e)
+                                {
+                                    if (e is AnimalAlreadySelectedException)
+                                    {
+                                        Console.WriteLine("Error: Animal already selected");
+                                        Broadcast("S|ERROR|ANIMAL_ALREADY_SELECTED", player.socket);
+                                    } else if (e is ArgumentException)
+                                    {
+                                        Console.WriteLine("Error: Invalid match id");
+                                        Broadcast("S|ERROR|INVALID_MATCH_ID", player.socket);
+                                    }
+                                    else if (e is PlayerAlreadyInGameException)
+                                    {
+                                        Console.WriteLine("Error: Player already in a match");
+                                        Broadcast("S|ERROR|ALREADY_IN_MATCH", player.socket);
+                                    }
+                                }
                                 break;
                         }
 
@@ -235,7 +266,10 @@ namespace ludorill_server_core
         {
             foreach(Player logged in loggedClients)
             {
-                if (logged.socket == source)
+                // Si ya se tiene el mismo socket, significa que es el mismo cliente
+                // Si tiene el mismo username significa que ya esta logeado en un cliente 
+                // y esta tratando de hacer login desde otro cliente
+                if (logged.socket == source || logged.username == username)
                 {
                     Console.WriteLine("Client already logged in");
                     return;
@@ -278,6 +312,16 @@ namespace ludorill_server_core
             }
 
             throw new ArgumentException("Client is not logged in.");
+        }
+
+        private List<TcpClient> PlayerListToClientList(List<Player> players)
+        {
+            List<TcpClient> tcpClients = new List<TcpClient>();
+            foreach(Player p in players)
+            {
+                tcpClients.Add(p.socket);
+            }
+            return tcpClients;
         }
     }
 }

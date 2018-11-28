@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ludorill_server_core.Exceptions;
 
 namespace ludorill_server_core
 {
@@ -13,15 +14,27 @@ namespace ludorill_server_core
         {
             if (IsAlreadyInAMatch(creator))
             {
-                Console.WriteLine("Cant create new match, user is already in a game.");
                 throw new PlayerAlreadyInGameException();
             } else
             {
                 Match m = new Match(matchIdSequence++);
-                m.Join(creator);
+                m.Join(creator, selection);
                 matches.Add(m);
                 return m;
             }
+        }
+
+        public Match JoinMatch(int matchId, Player p, Animal selection)
+        {
+            if (IsAlreadyInAMatch(p))
+            {
+                throw new PlayerAlreadyInGameException();
+            }
+            // Esta llamada puede causar un ArgumentException si no consigue la partida
+            Match m = FindMatchBy(matchId);
+            // Esta llamada puede causar un AnimalAlreadySelectedException
+            m.Join(p, selection);
+            return m;
         }
 
         /*
@@ -38,5 +51,15 @@ namespace ludorill_server_core
             return false;
         }
 
+        public Match FindMatchBy(int id)
+        {
+            foreach (Match m in matches)
+            {
+                if (m.id == id)
+                    return m;
+            }
+
+            throw new ArgumentException("Invalid match id");
+        }
     }
 }

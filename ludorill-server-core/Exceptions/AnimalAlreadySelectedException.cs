@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ludorill_server_core.Exceptions
 {
-    class UsernameAlreadyUsedException : Exception
+    class AnimalAlreadySelectedException : Exception
     {
     }
 }

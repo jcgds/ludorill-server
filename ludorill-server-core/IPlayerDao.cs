@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ludorill_server_core
 {
-    interface PlayerDao
+    interface IPlayerDao
     {
         List<Player> GetAllPlayers();
         void SavePlayer(Player p);

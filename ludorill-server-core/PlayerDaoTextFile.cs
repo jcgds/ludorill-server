@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ludorill_server_core.Exceptions;
 
 namespace ludorill_server_core
 {
-    class PlayerDaoTextFile : PlayerDao
+    class PlayerDaoTextFile : IPlayerDao
     {
         private const string PATH = "playerdb.txt";
 
