@@ -181,7 +181,7 @@ namespace ludorill_server_core
                         Player player = GetLoggedPlayerBy(source);
                         switch (split[2])
                         {
-                            // C|MATCH|CREATE|:animalSelection --respuesta--> S|MATCH|CREATED|:id (|:nPlayers?)
+                            // C|MATCH|CREATE|:animalSelection --respuesta--> S|MATCH|CREATED|:id|:playerColor
                             case "CREATE":
                                 try
                                 {
@@ -191,7 +191,9 @@ namespace ludorill_server_core
                                     Match m = matchManager.CreateMatch(player, selection);
                                     Console.WriteLine("Successfully created match with id: " + m.id);
                                     // TODO: Tal vez se deberia avisar que se creo una partida a todos los clientes conectados
-                                    Broadcast(string.Format("S|MATCH|CREATED|{0}", m.id), player.socket);
+                                    string message = string.Format("S|MATCH|CREATED|{0}|{1}", m.id, m.GetPlayerColor(player));
+                                    Console.WriteLine("Server sends: " + message);
+                                    Broadcast(message, player.socket);
                                 }
                                 catch (PlayerAlreadyInGameException)
                                 {
@@ -200,17 +202,19 @@ namespace ludorill_server_core
                                 }
                                 break;
 
-                            // C|MATCH|JOIN|:id|:animalSelection --respuesta--> S|MATCH|JOINED|:matchId|:username|:nPlayers
+                            // C|MATCH|JOIN|:id|:animalSelection --respuesta--> S|MATCH|JOINED|:matchId|:username|:playerColor|:nPlayers|
                             case "JOIN":
                                 int matchId = Convert.ToInt16(split[3]);
                                 Animal animal = (Animal)Convert.ToInt16(split[4]);
                                 try
                                 {
                                     Match m = matchManager.JoinMatch(matchId, player, animal);
-                                    string message = string.Format("S|MATCH|JOINED|{0}|{1}|{2}", m.id, player.username, m.players.Count);
+                                    string message = string.Format("S|MATCH|JOINED|{0}|{1}|{2}|{3}", 
+                                        m.id, player.username, m.GetPlayerColor(player), m.GetPlayers().Count);
+
                                     Console.WriteLine("Sent: " + message);
                                     // Cada vez que un jugador se una, hay que avisar a todos los demas miembros de la partida
-                                    Broadcast(message, PlayerListToClientList(m.players));
+                                    Broadcast(message, PlayerListToClientList(m.GetPlayers()));
                                 }
                                 catch (Exception e)
                                 {
@@ -229,6 +233,21 @@ namespace ludorill_server_core
                                         Broadcast("S|ERROR|ALREADY_IN_MATCH", player.socket);
                                     }
                                 }
+                                break;
+
+                            // C|MATCH|PLAY|:matchId
+                            case "PLAY":
+                                matchId = Convert.ToInt16(split[3]);
+                                // Ya tenemos el player
+                                try
+                                {
+                                    Match match = matchManager.FindMatchBy(matchId);
+
+                                } catch (Exception e)
+                                {
+
+                                }
+                                // Si no es su turno, no hacer nada o lanzar excepcion
                                 break;
                         }
 

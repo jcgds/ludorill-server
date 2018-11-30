@@ -43,7 +43,9 @@ namespace ludorill_server_core
             {
                 try
                 {
-                    TcpClient testClient = new TcpClient("127.0.0.1", 6969);
+                    Console.WriteLine("IP del servidor: ");
+                    string ip = Console.ReadLine();
+                    TcpClient testClient = new TcpClient(ip, 6969);
                     NetworkStream st = testClient.GetStream();
                     while (true)
                     {
