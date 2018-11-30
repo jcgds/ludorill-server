@@ -235,19 +235,42 @@ namespace ludorill_server_core
                                 }
                                 break;
 
-                            // C|MATCH|PLAY|:matchId
+                            // C|MATCH|PLAY|:matchId|{ROLL | SELECT_PIECE}
                             case "PLAY":
                                 matchId = Convert.ToInt16(split[3]);
-                                // Ya tenemos el player
+                                
                                 try
                                 {
                                     Match match = matchManager.FindMatchBy(matchId);
+                                    // Deberiamos validar si es el turno del player, si no lo es le mandamos
+                                    // un mensaje de error y listo.
 
+                                    switch (split[4])
+                                    {
+                                        case "ROLL":
+                                            // Generar numero random y mandarselo a todos los players de la partida
+                                            // En el Match, se genera el numero y se mantiene, pero no se mueve el currentPlayer
+                                            // pues hay que esperar a que este le indique que ficha desea mover (con el mensaje
+                                            // SELECT_PIECE)
+                                            break;
+
+                                        case "SELECT_PIECE":
+                                            // Tratar de mover pieza si se puede, probablemente tengamos que manejar
+                                            // una excepcion PieceCantBeMoved que seria devuelta cuando el jugador 
+                                            // no saco 6 y trata de mover una pieza que no ha entrado al mapa
+                                            break;
+                                    }
                                 } catch (Exception e)
                                 {
-
+                                    if (e is ArgumentException)
+                                    {
+                                        // Si no se consigue la partida
+                                    }
+                                    else if (e is NotYourTurnException)
+                                    {
+                                        // Si no es su turno, Broadcast mensaje a ese player
+                                    }
                                 }
-                                // Si no es su turno, no hacer nada o lanzar excepcion
                                 break;
                         }
 
