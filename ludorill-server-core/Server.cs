@@ -297,6 +297,7 @@ namespace ludorill_server_core
                                     }
                                 } catch (Exception e)
                                 {
+                                    // TODO: Broadcast mensaje de error respectivo
                                     if (e is ArgumentException)
                                     {
                                         Console.WriteLine("Player not in a match");
@@ -305,13 +306,17 @@ namespace ludorill_server_core
                                     {
                                         Console.WriteLine("No es el turno del jugador");
                                     }
+                                    else if (e is MatchNotFullException)
+                                    {
+                                        Console.WriteLine("No se puede jugar la partida, faltan jugadores");
+                                    }
                                 }
                                 break;
                         }
 
                     } catch (ArgumentException)
                     {
-                        Console.WriteLine("Non-logged user triying to join match");
+                        Console.WriteLine("Non-logged user triying to play match");
                         Broadcast("S|ERROR|NEEDS_LOGIN", source);
                     }
                     break;

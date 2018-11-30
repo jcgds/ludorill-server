@@ -31,6 +31,9 @@ namespace ludorill_server_core
          */
         public int PlayTurn(Player p, int ficha)
         {
+            if (playersToColors.Count < 4)
+                throw new MatchNotFullException();
+
             if (currentPlayer != p)
                 throw new NotYourTurnException();
 
@@ -44,6 +47,9 @@ namespace ludorill_server_core
 
         public int RollDice(Player p)
         {
+            if (playersToColors.Count < 4)
+                throw new MatchNotFullException();
+
             if (currentPlayer != p)
                 throw new NotYourTurnException();
 
