@@ -129,6 +129,24 @@ namespace ludorill_server_core
             }
         }
 
+        public void Broadcast(string data, List<Player> players)
+        {
+            var clients = PlayerListToClientList(players);
+            foreach (TcpClient sc in clients)
+            {
+                try
+                {
+                    StreamWriter writer = new StreamWriter(sc.GetStream());
+                    writer.WriteLine(data);
+                    writer.Flush();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error sending message: " + e.Message);
+                }
+            }
+        }
+
         /*
          * Metodo para enviar un mensaje a un solo cliente.
          */
@@ -214,7 +232,7 @@ namespace ludorill_server_core
 
                                     Console.WriteLine("Sent: " + message);
                                     // Cada vez que un jugador se una, hay que avisar a todos los demas miembros de la partida
-                                    Broadcast(message, PlayerListToClientList(m.GetPlayers()));
+                                    Broadcast(message, m.GetPlayers());
                                 }
                                 catch (Exception e)
                                 {
@@ -235,40 +253,57 @@ namespace ludorill_server_core
                                 }
                                 break;
 
-                            // C|MATCH|PLAY|:matchId|{ROLL | SELECT_PIECE}
-                            case "PLAY":
-                                matchId = Convert.ToInt16(split[3]);
-                                
+                            // C|MATCH|PLAY|{ROLL | SELECT_PIECE}
+                            case "PLAY":                                
                                 try
                                 {
-                                    Match match = matchManager.FindMatchBy(matchId);
-                                    // Deberiamos validar si es el turno del player, si no lo es le mandamos
-                                    // un mensaje de error y listo.
+                                    Match match = matchManager.FindMatchBy(player);
 
-                                    switch (split[4])
+                                    switch (split[3])
                                     {
+                                        // C|MATCH|PLAY|ROLL --respuesta--> S|MATCH|PLAY|:matchId|ROLLED|:usernameJugador|:diceRoll|:indexDeFichasMovibles
                                         case "ROLL":
-                                            // Generar numero random y mandarselo a todos los players de la partida
+                                            // Generar numero random y mandarselo a todos los players de la partida.
                                             // En el Match, se genera el numero y se mantiene, pero no se mueve el currentPlayer
                                             // pues hay que esperar a que este le indique que ficha desea mover (con el mensaje
                                             // SELECT_PIECE)
+                                            int rolled = match.RollDice(player);
+                                            List<int> fichasMovibles = match.MovablePieces(player, rolled);
+                                            string message = string.Format("S|MATCH|PLAY|{0}|ROLLED|{1}|{2}|{3}", 
+                                                match.id, player.username, rolled, string.Join(",", fichasMovibles));
+                                            Console.WriteLine("Sent: " + message);
+                                            Broadcast(message, match.GetPlayers());
                                             break;
 
+                                        // C|MATCH|PLAY|SELECT_PIECE|:pieceIndex --respuesta--> S|MATCH|PLAY|:color|:pieceIndex|:nMovements
                                         case "SELECT_PIECE":
-                                            // Tratar de mover pieza si se puede, probablemente tengamos que manejar
-                                            // una excepcion PieceCantBeMoved que seria devuelta cuando el jugador 
-                                            // no saco 6 y trata de mover una pieza que no ha entrado al mapa
+                                            // El servidor deberia hacer un Broadcast a la partida indicando el color, ficha y numero
+                                            // de movimientos ejecutados.
+                                            int pieceIndex = Convert.ToInt16(split[4]);
+                                            try
+                                            {
+                                                int movimientosEjecutados = match.PlayTurn(player, pieceIndex);
+                                                message = string.Format("S|MATCH|PLAY|{0}|{1}|{2}",
+                                                    match.GetPlayerColor(player), pieceIndex, movimientosEjecutados);
+                                                Console.WriteLine("Sent: " + message);
+                                                Broadcast(message, match.GetPlayers());
+                                            }
+                                            catch (PieceCantBeMovedException)
+                                            {
+                                                Console.WriteLine("Pieza no puede ser movida");
+                                                // TODO: Broadcast al player indicando el error
+                                            }
                                             break;
                                     }
                                 } catch (Exception e)
                                 {
                                     if (e is ArgumentException)
                                     {
-                                        // Si no se consigue la partida
+                                        Console.WriteLine("Player not in a match");
                                     }
                                     else if (e is NotYourTurnException)
                                     {
-                                        // Si no es su turno, Broadcast mensaje a ese player
+                                        Console.WriteLine("No es el turno del jugador");
                                     }
                                 }
                                 break;

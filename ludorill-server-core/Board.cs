@@ -88,6 +88,37 @@ namespace ludorill_server_core
                 currentPiece.Move(movimientos);              
             }
         }
+
+        /*
+         * Devuelve el index de las piezas de un color que se pueden mover
+         * dado un diceRoll.
+         * Por ejemplo: 
+         * - Si todas las fichas estan en la posicion inicial, si se rollea
+         *   6, devolveria [0,1,2,3]
+         * - Si solo 1 ficha esta dentro del mapa y se rollea algun numero diferente a 6,
+         *   entonces solo esa ficha puede moverse por lo que devolveria su index.
+         */
+        public List<int> MovablePieces(Color c, int diceRoll)
+        {
+            // TODO: Validar que se consiga
+            piecesByColor.TryGetValue(c, out Piece[] pieces);
+            List<int> result = new List<int>();
+            for(int i=0; i < pieces.Length; i++) 
+            {
+                Piece p = pieces[i];
+                // Si la ficha ya esta en el centro, no se puede mover
+                if (p.inCenter)
+                    continue;
+
+                // Si la posicion actual es null, significa que estamos en la posicion inicial
+                // Por lo que para poder salir, se necesita rollear un 6.
+                // Si no es null, significa que ya estamos en alguna posicion del mapa y nos podemos mover.
+                if ( (p.currentPosition == null && diceRoll == 6) || p.currentPosition != null)
+                    result.Add(i);
+            }
+
+            return result;
+        }
     }
 
     class Piece

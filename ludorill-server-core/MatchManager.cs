@@ -51,15 +51,26 @@ namespace ludorill_server_core
             return false;
         }
 
-        public Match FindMatchBy(int id)
+        public Match FindMatchBy(int matchId)
         {
             foreach (Match m in matches)
             {
-                if (m.id == id)
+                if (m.id == matchId)
                     return m;
             }
 
             throw new ArgumentException("Invalid match id");
+        }
+
+        public Match FindMatchBy(Player p)
+        {
+            foreach (Match m in matches)
+            {
+                if (m.Has(p))
+                    return m;
+            }
+
+            throw new ArgumentException("Player is not in a match");
         }
     }
 }

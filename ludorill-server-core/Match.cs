@@ -15,6 +15,7 @@ namespace ludorill_server_core
         private Dictionary<Player, Animal> animalSelections;
         private Board board;
         private Player currentPlayer;
+        private int lastDiceRoll;
         private Color lastSelectedColor = Color.BLUE;
 
         public Match(int id)
@@ -25,23 +26,30 @@ namespace ludorill_server_core
             board = new Board();
         }
 
-        public void Start()
-        {
-            // Validar que la partida este llena
-            if (playersToColors.Count < 4)
-            {
-                Console.WriteLine("No se puede comenzar la partida, faltan jugadores");
-                // TODO: Lanzar excepcion
-                return;
-            }
-        }
-
-        public void PlayTurn(Player p, int ficha, int diceRoll)
+        /*
+         * Ejecuta el movimiento y devuelve el numero de pasos dado.
+         */
+        public int PlayTurn(Player p, int ficha)
         {
             if (currentPlayer != p)
                 throw new NotYourTurnException();
 
-            // board.Move(playersToColors.TryGet(p), );
+            if (!CanMovePiece(p, lastDiceRoll, ficha))
+                throw new PieceCantBeMovedException();
+
+            playersToColors.TryGetValue(p, out Color playerColor);
+            board.Move(playerColor, ficha, lastDiceRoll);
+            return lastDiceRoll;
+        }
+
+        public int RollDice(Player p)
+        {
+            if (currentPlayer != p)
+                throw new NotYourTurnException();
+
+            Random r = new Random();
+            lastDiceRoll = r.Next(5, 7);
+            return lastDiceRoll;
         }
 
         public void Join(Player p, Animal selection)
@@ -51,6 +59,10 @@ namespace ludorill_server_core
 
             if (IsAlreadySelected(selection))
                 throw new AnimalAlreadySelectedException();
+
+            // TODO: Cambiar esto por sistema de que cada jugador rollee y el mayor es el primero
+            if (playersToColors.Count == 0)
+                currentPlayer = p;
 
             playersToColors.Add(p, lastSelectedColor++);
             animalSelections.Add(p, selection);
@@ -93,5 +105,25 @@ namespace ludorill_server_core
                 return Color.EMPTY;
             }           
         }
+
+        public List<int> MovablePieces(Player p, int diceRoll)
+        {
+            // TODO: Validar que se haya conseguido el valor
+            playersToColors.TryGetValue(p, out Color c);
+            return board.MovablePieces(c, diceRoll);
+        }
+
+        private bool CanMovePiece(Player p, int diceRoll, int index)
+        {
+            var movable = MovablePieces(p, diceRoll);
+            foreach (int m in movable)
+            {
+                if (m == index)
+                    return true;
+            }
+
+            return false;
+        }
+
     }
 }
