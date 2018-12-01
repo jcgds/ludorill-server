@@ -14,8 +14,11 @@ namespace ludorill_server_core
         private Dictionary<Player, Color> playersToColors;
         private Dictionary<Player, Animal> animalSelections;
         private Board board;
-        private Player currentPlayer;
+        // TODO: Cambiar esta asigancion default por el sistema en el que cada jugador rollea y el que saque mas es el primero
+        private Color currentPlayerColor = Color.BLUE;
         private int lastDiceRoll;
+        private bool lastDiceRollExecuted = true;
+        // Usada para asignar los colores a los jugadores e=segun se vayan uniendo a la partida
         private Color lastSelectedColor = Color.BLUE;
 
         public Match(int id)
@@ -34,7 +37,7 @@ namespace ludorill_server_core
             if (playersToColors.Count < 4)
                 throw new MatchNotFullException();
 
-            if (currentPlayer != p)
+            if (currentPlayerColor != GetPlayerColor(p))
                 throw new NotYourTurnException();
 
             if (!CanMovePiece(p, lastDiceRoll, ficha))
@@ -42,7 +45,22 @@ namespace ludorill_server_core
 
             playersToColors.TryGetValue(p, out Color playerColor);
             board.Move(playerColor, ficha, lastDiceRoll);
+            AssignTurnToNextplayer();
+            lastDiceRollExecuted = true;
             return lastDiceRoll;
+        }
+
+        /*
+         * Encapsula la logica de calculo del siguiente jugador en base al actual.
+         */
+        private void AssignTurnToNextplayer()
+        {
+            Console.WriteLine("The turn was: " + currentPlayerColor);
+            // Si es mayor a 3, significa que va de RED a BLUE
+            if ((int)++currentPlayerColor > 3)
+                currentPlayerColor = 0;
+
+            Console.WriteLine("Now it is: " + currentPlayerColor);
         }
 
         public int RollDice(Player p)
@@ -50,11 +68,24 @@ namespace ludorill_server_core
             if (playersToColors.Count < 4)
                 throw new MatchNotFullException();
 
-            if (currentPlayer != p)
+            if (currentPlayerColor != GetPlayerColor(p))
                 throw new NotYourTurnException();
 
+            // Si no ha ejecutado el movimiento le devolvemos siempre el mismo numero
+            if (!lastDiceRollExecuted)
+            {
+                Console.WriteLine("Trying to reroll");
+                return lastDiceRoll;
+            }
+            
             Random r = new Random();
-            lastDiceRoll = r.Next(5, 7);
+            lastDiceRoll = r.Next(1, 7);
+            Console.WriteLine("Rolled: " + lastDiceRoll);
+            lastDiceRollExecuted = false;
+
+            if (MovablePieces(p, lastDiceRoll).Count == 0)
+                AssignTurnToNextplayer();
+
             return lastDiceRoll;
         }
 
@@ -65,10 +96,6 @@ namespace ludorill_server_core
 
             if (IsAlreadySelected(selection))
                 throw new AnimalAlreadySelectedException();
-
-            // TODO: Cambiar esto por sistema de que cada jugador rollee y el mayor es el primero
-            if (playersToColors.Count == 0)
-                currentPlayer = p;
 
             playersToColors.Add(p, lastSelectedColor++);
             animalSelections.Add(p, selection);
