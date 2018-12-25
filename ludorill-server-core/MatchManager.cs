@@ -13,23 +13,25 @@ namespace ludorill_server_core
         public Match CreateMatch(Player creator, Animal selection)
         {
             if (IsAlreadyInAMatch(creator))
-            {
                 throw new PlayerAlreadyInGameException();
-            } else
-            {
-                Match m = new Match(matchIdSequence++);
-                m.Join(creator, selection);
-                matches.Add(m);
-                return m;
-            }
+            
+            if (selection >= Animal.AMOUNT_OF_CHOICES || selection < 0) 
+                throw new InvalidAnimalSelectionException();
+
+            Match m = new Match(matchIdSequence++);
+            m.Join(creator, selection);
+            matches.Add(m);
+            return m;
         }
 
         public Match JoinMatch(int matchId, Player p, Animal selection)
         {
             if (IsAlreadyInAMatch(p))
-            {
                 throw new PlayerAlreadyInGameException();
-            }
+            
+            if (selection >= Animal.AMOUNT_OF_CHOICES || selection < 0) 
+                throw new InvalidAnimalSelectionException();
+            
             // Esta llamada puede causar un ArgumentException si no consigue la partida
             Match m = FindMatchBy(matchId);
             // Esta llamada puede causar un AnimalAlreadySelectedException
