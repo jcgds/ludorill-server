@@ -296,7 +296,7 @@ namespace ludorill_server_core
                                                 Broadcast(message, match.GetPlayers());
                                                 break;
 
-                                            // C|MATCH|PLAY|SELECT_PIECE|:pieceIndex --respuesta--> S|MATCH|PLAY|:color|:pieceIndex|:nMovements
+                                            // C|MATCH|PLAY|SELECT_PIECE|:pieceIndex --respuesta--> S|MATCH|PLAY|MOVE|:color|:pieceIndex|:nMovements
                                             case "SELECT_PIECE":
                                                 // El servidor deberia hacer un Broadcast a la partida indicando el color, ficha y numero
                                                 // de movimientos ejecutados.
@@ -304,7 +304,7 @@ namespace ludorill_server_core
                                                 try
                                                 {
                                                     int movimientosEjecutados = match.PlayTurn(player, pieceIndex);
-                                                    message = string.Format("S|MATCH|PLAY|{0}|{1}|{2}",
+                                                    message = string.Format("S|MATCH|PLAY|MOVE|{0}|{1}|{2}",
                                                         match.GetPlayerColor(player), pieceIndex, movimientosEjecutados);
                                                     Console.WriteLine("Sent: " + message);
                                                     Broadcast(message, match.GetPlayers());
