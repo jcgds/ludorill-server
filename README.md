@@ -33,6 +33,12 @@ Para iniciar sesión en el servidor se debe enviar: `C|LOGIN|:username|:password
 ## Partidas
 Mensajes relacionados a la creación de partidas y el progreso de las partidas.
 
+**Errores manejados para todas las acciones de esta categoria:**
+
+|Condición|Mensaje|Descripción|
+| ------------- |:-----------------:|-------------|
+| Usuario sin sesion iniciada |`S\|ERROR\|NEEDS_LOGIN`| El cliente debe iniciar sesion para poder crear una partida |
+
 ### Crear partida
 Mensaje: `C|MATCH|CREATE|:animalSelection`
 
@@ -52,7 +58,6 @@ Mensaje: `C|MATCH|CREATE|:animalSelection`
 |Partida creada| `S\|MATCH\|CREATED\|{idPartida}\|{colorDelJugador}` | Se logro crear la partida,<br /> devuelve el id de la partida y el color que le corresponde al jugador que la creó (sin los brackets)|
 |Usuario que intenta crear partida <br /> ya está en una en progreso| `S\|ERROR\|ALREADY_IN_MATCH` | No puede estar en varias partidas simultaneamente |
 |Seleccion de animal invalida| `S\|ERROR\|INVALID_SELECTION` | El `:animalSelection` enviado no es un numero o se pasa del rango de opciones disponibles |
-| Usuario sin sesion iniciada |`S\|ERROR\|NEEDS_LOGIN`| El cliente debe iniciar sesion para poder crear una partida |
 | Error no manejado | `S\|ERROR\|UNKNOWN_ERROR` | Error no manejado directamente, pero se asume que no se logro crear la partida |
 
 ### Unirse a partida
@@ -67,7 +72,6 @@ Mensaje: `C|MATCH|JOIN|:matchId|:animalSelection`
 |ID de partida invalido|`S\|ERROR\|INVALID_MATCH_ID`| No existe una partida con el `matchId` recibido|
 |Usuario ya esta en una partida| `S\|ERROR\|ALREADY_IN_MATCH` | No puede estar en varias partidas simultaneamente |
 |Seleccion de animal invalida| `S\|ERROR\|INVALID_SELECTION` | El `:animalSelection` enviado no es un numero o se pasa del rango de opciones disponibles |
-| Usuario sin sesion iniciada |`S\|ERROR\|NEEDS_LOGIN`| El cliente debe iniciar sesion para poder crear una partida |
 
 ### Lanzar dado
 Esta accion solo genera el numero al azar y lo guarda para ser ejecutado cuando se mande una accion `SELECT_PIECE` pues se debe seleccionar la pieza que sera movida.
