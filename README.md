@@ -37,7 +37,7 @@ Mensajes relacionados a la creación de partidas y el progreso de las partidas.
 
 |Condición|Mensaje|Descripción|
 | ------------- |:-----------------:|-------------|
-| Usuario sin sesion iniciada |`S\|ERROR\|NEEDS_LOGIN`| El cliente debe iniciar sesion para poder crear una partida |
+| Usuario sin sesion iniciada |`S\|ERROR\|NEEDS_LOGIN`| El cliente debe iniciar sesion para poder ejecutar la accion |
 
 ### Crear partida
 Mensaje: `C|MATCH|CREATE|:animalSelection`
