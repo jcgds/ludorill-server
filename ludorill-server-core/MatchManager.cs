@@ -82,7 +82,7 @@ namespace ludorill_server_core
 
             foreach (Match m in matches)
             {
-                pieces.Add(string.Format("{0}-{1}", m.id, m.GetPlayers().Count));
+                pieces.Add(string.Format("{0}-{1}-{2}", m.id, m.GetPlayers().Count, m.name));
             }
 
             result = string.Join(',', pieces);
