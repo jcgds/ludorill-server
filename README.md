@@ -27,7 +27,7 @@ Para iniciar sesión en el servidor se debe enviar: `C|LOGIN|:username|:password
 
 |Condición|Mensaje|Descripción|
 | ------------- |:-----------------:|-------------|
-|Success| `S\|LOGIN\|SUCCESS` | Sesión iniciada exitosamente |
+|Success| `S\|LOGIN\|SUCCESS\|{listaDePartidas}` | Sesión iniciada exitosamente.<br/>Cada elemento de la lista de partidas tiene el siguiente formato: `matchId-numeroDeJugadores` y estan separados por comas (`,`)|
 |Fail| `S\|LOGIN\|FAIL` | Usuario o contraseña incorrecta |
 
 ## Partidas
