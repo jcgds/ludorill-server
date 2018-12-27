@@ -42,7 +42,7 @@ namespace ludorill_server_core
         /*
          * Indica si un jugador ya pertenece a alguna partida.
          */
-        private bool IsAlreadyInAMatch(Player p)
+        public bool IsAlreadyInAMatch(Player p)
         {
             foreach(Match m in matches)
             {
