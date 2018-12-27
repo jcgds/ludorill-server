@@ -424,13 +424,11 @@ namespace ludorill_server_core
                 {
                     p.socket = source;
                     Console.WriteLine("Login exitoso");
-                    Broadcast("S|LOGIN|SUCCESS", source);
-                    Console.WriteLine("Unlogged before rm: " + unloggedClients.Count);
+                    string successMessage = string.Format("S|LOGIN|SUCCESS|{0}", matchManager.GetAvailableMatches());
+                    Console.WriteLine(successMessage);
+                    Broadcast(successMessage, source);
                     unloggedClients.Remove(source);
-                    Console.WriteLine("Unlogged after rm: " + unloggedClients.Count);
-
                     loggedClients.Add(p);
-                    Console.WriteLine("logged: " + loggedClients.Count);
                 }
             }
             catch
