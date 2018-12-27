@@ -230,10 +230,9 @@ namespace ludorill_server_core
                                         Console.WriteLine("Animal selection: " + selection);
                                         Match m = matchManager.CreateMatch(player, selection);
                                         Console.WriteLine("Successfully created match with id: " + m.id);
-                                        // TODO: Tal vez se deberia avisar que se creo una partida a todos los clientes conectados
                                         string message = string.Format("S|MATCH|CREATED|{0}|{1}", m.id, m.GetPlayerColor(player));
                                         Console.WriteLine("Server sends: " + message);
-                                        Broadcast(message, player.socket);
+                                        Broadcast(message, loggedClients);
                                     }
                                     catch (Exception e)
                                     {
