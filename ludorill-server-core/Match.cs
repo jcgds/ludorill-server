@@ -11,6 +11,7 @@ namespace ludorill_server_core
     class Match
     {
         public int id;
+        public string name;
         private Dictionary<Player, Color> playersToColors;
         private Dictionary<Player, Animal> animalSelections;
         private Board board;
@@ -21,9 +22,10 @@ namespace ludorill_server_core
         // Usada para asignar los colores a los jugadores e=segun se vayan uniendo a la partida
         private Color lastSelectedColor = Color.BLUE;
 
-        public Match(int id)
+        public Match(int id, string name)
         {
             this.id = id;
+            this.name = name;
             playersToColors = new Dictionary<Player, Color>();
             animalSelections = new Dictionary<Player, Animal>();
             board = new Board();
