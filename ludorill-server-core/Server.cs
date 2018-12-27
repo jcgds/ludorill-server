@@ -266,8 +266,8 @@ namespace ludorill_server_core
                                             m.id, player.username, m.GetPlayerColor(player), m.GetPlayers().Count);
 
                                         Console.WriteLine("Sent: " + message);
-                                        // Cada vez que un jugador se una, hay que avisar a todos los demas miembros de la partida
-                                        Broadcast(message, m.GetPlayers());
+                                        //Broadcast(message, m.GetPlayers());
+                                        Broadcast(message, loggedClients);
                                     }
                                     catch (Exception e)
                                     {
