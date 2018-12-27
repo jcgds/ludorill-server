@@ -81,11 +81,34 @@ namespace ludorill_server_core
 
                 for (int i = 0; i < disconnectedList.Count; i++)
                 {
-                    unloggedClients.Remove(disconnectedList[i]);
-                    // Creo que esto no aplica para nuestro caso, tal vez permitir el reconnect
-                    // disconnectedList.RemoveAt(i);
-
-                    // TODO: Avisar a todos que alguien se desconecto
+                    TcpClient dc = disconnectedList[i];
+                    disconnectedList.RemoveAt(i);
+     
+                    Player player = FindLoggedPlayerBy(dc);
+                    if (player != null)
+                    {
+                        if (matchManager.IsAlreadyInAMatch(player))
+                        {
+                            // Usuario loggeado en partida se desconecta ¿Que deberiamos hacer?
+                            // TODO: Manejar este caso
+                            // Aqui se podria avisar a los miembros de la partida que alguien se desconecto
+                            Console.WriteLine("{0} se desconecto pero esta en partida. FALTA IMPLEMENTAR ESTE CASO", player.username);
+                        }
+                        else
+                        {
+                            // El cliente estaba loggeado pero no estaba en partida
+                            // Se borra de la lista de clientes loggeados y se cierra el socket
+                            loggedClients.Remove(player);
+                            dc.Close();
+                            Console.WriteLine("{0} se desconecto. Clientes conectados: {1}", player.username, AmountOfClients());
+                        }
+                    } else
+                    {
+                        unloggedClients.Remove(dc);
+                        dc.Close();
+                        Console.WriteLine("Cliente sin sesion iniciada desconectado. Clientes conectados: {0}", AmountOfClients());
+                    }
+                    
                 }
             }
         }
@@ -435,6 +458,19 @@ namespace ludorill_server_core
                 tcpClients.Add(p.socket);
             }
             return tcpClients;
+        }
+
+        private Player FindLoggedPlayerBy(TcpClient tcp)
+        {
+            foreach (Player p in loggedClients)
+            {
+                if (p.socket == tcp)
+                {
+                    return p;
+                }
+            }
+
+            return null;
         }
     }
 }
