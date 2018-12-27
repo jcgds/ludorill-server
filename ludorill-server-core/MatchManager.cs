@@ -74,5 +74,19 @@ namespace ludorill_server_core
 
             throw new ArgumentException("Player is not in a match");
         }
+
+        public string GetAvailableMatches()
+        {
+            string result = "";
+            List<string> pieces = new List<string>();
+
+            foreach (Match m in matches)
+            {
+                pieces.Add(string.Format("{0}-{1}", m.id, m.GetPlayers().Count));
+            }
+
+            result = string.Join(',', pieces);
+            return result;
+        }
     }
 }
