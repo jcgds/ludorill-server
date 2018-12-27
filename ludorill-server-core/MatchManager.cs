@@ -10,7 +10,7 @@ namespace ludorill_server_core
         private List<Match> matches = new List<Match>();
         private int matchIdSequence = 0;
 
-        public Match CreateMatch(Player creator, Animal selection)
+        public Match CreateMatch(Player creator, Animal selection, string matchName)
         {
             if (IsAlreadyInAMatch(creator))
                 throw new PlayerAlreadyInGameException();
@@ -18,7 +18,7 @@ namespace ludorill_server_core
             if (selection >= Animal.AMOUNT_OF_CHOICES || selection < 0) 
                 throw new InvalidAnimalSelectionException();
 
-            Match m = new Match(matchIdSequence++);
+            Match m = new Match(matchIdSequence++, matchName);
             m.Join(creator, selection);
             matches.Add(m);
             return m;

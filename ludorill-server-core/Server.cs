@@ -222,15 +222,15 @@ namespace ludorill_server_core
                             Player player = GetLoggedPlayerBy(source);
                             switch (split[2])
                             {
-                                // C|MATCH|CREATE|:animalSelection --respuesta--> S|MATCH|CREATED|:id|:playerColor
+                                // C|MATCH|CREATE|:matchName|:animalSelection --respuesta--> S|MATCH|CREATED|:id|:playerColor
                                 case "CREATE":
                                     try
                                     {
-                                        Animal selection = (Animal)Convert.ToInt16(split[3]);
+                                        Animal selection = (Animal)Convert.ToInt16(split[4]);
                                         Console.WriteLine("Animal selection: " + selection);
-                                        Match m = matchManager.CreateMatch(player, selection);
+                                        Match m = matchManager.CreateMatch(player, selection, split[3]);
                                         Console.WriteLine("Successfully created match with id: " + m.id);
-                                        string message = string.Format("S|MATCH|CREATED|{0}|{1}", m.id, m.GetPlayerColor(player));
+                                        string message = string.Format("S|MATCH|CREATED|{0}|{1}|{2}", m.id, m.GetPlayerColor(player), m.name);
                                         Console.WriteLine("Server sends: " + message);
                                         Broadcast(message, loggedClients);
                                     }
