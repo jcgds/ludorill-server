@@ -29,9 +29,11 @@ namespace ludorill_server_core
             }
         }
 
+
         private void InitializeBoardCells()
         {
-            // Creo 52 celdas contiguas, una especia de lista enlazada circular
+            // Creo 52 celdas contiguas, generando una lista enlazada circular
+            // conectando el mapa para que pueda ser recorrido.
             Cell first = new Cell();
             Cell aux = first;
             for (int i = 0; i < 51; i++)
@@ -47,6 +49,9 @@ namespace ludorill_server_core
 
             for (int i = 0; i < 52; i++)
             {
+                // Estas posiciones corresponden a aquellas en las que salen las piezas de cada uno de los
+                // colores inicialmente, a cada una de ellas le agregamos las celdas necesarias para hacer
+                // el camino al centro del mapa, completando asi la estructura del tablero.
                 if (i == 0 || i == 13 || i == 26 || i == 39)
                 {
                     actualFirst.color = color++;

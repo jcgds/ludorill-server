@@ -49,7 +49,7 @@ namespace ludorill_server_core
                 GetPlayer(p.username);
                 throw new UsernameAlreadyUsedException();
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 StreamWriter writer = File.AppendText(PATH);
                 writer.WriteLine(string.Format("{0}:{1}", p.username, p.password));

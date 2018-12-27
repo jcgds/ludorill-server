@@ -87,20 +87,20 @@ namespace ludorill_server_core
 
                     // TODO: Avisar a todos que alguien se desconecto
                 }
-            }           
+            }
         }
 
         public void StartListening()
-        { 
+        {
             server.BeginAcceptTcpClient(AcceptTcpClient, server);
         }
 
         private void AcceptTcpClient(IAsyncResult ar)
         {
-            TcpListener listener = (TcpListener) ar.AsyncState;
-            TcpClient client =listener.EndAcceptTcpClient(ar);
+            TcpListener listener = (TcpListener)ar.AsyncState;
+            TcpClient client = listener.EndAcceptTcpClient(ar);
             unloggedClients.Add(client);
-            
+
             Console.WriteLine("Conexion establecida con cliente. Clientes conectados: {0}", AmountOfClients());
             StartListening();
         }
@@ -115,14 +115,15 @@ namespace ludorill_server_core
          */
         public void Broadcast(string data, List<TcpClient> clients)
         {
-            foreach(TcpClient sc in clients)
+            foreach (TcpClient sc in clients)
             {
                 try
                 {
                     StreamWriter writer = new StreamWriter(sc.GetStream());
                     writer.WriteLine(data);
                     writer.Flush();
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine("Error sending message: " + e.Message);
                 }
@@ -165,161 +166,190 @@ namespace ludorill_server_core
             Console.WriteLine("Mensaje recibido: {0}", data);
             string[] split = data.Split('|');
 
-            if (split.Length < 1)
-                return;
-
-            switch(split[1])
+            try
             {
-                case "LOGIN":
-                    if (split.Length < 4)
-                    {
-                        Console.WriteLine("Mensaje incompleto");
-                        Broadcast("S|LOGIN|FAIL", source);
-                    }
-                    HandleLogin(source, split[2], split[3]);
-                    break;
-
-                case "REGISTER":
-                    try
-                    {
-                        playerDao.SavePlayer(new Player(split[2], split[3]));
-                        Broadcast("S|REGISTER|SUCCESS", source);
-                        Console.WriteLine("Successfully registered..");
-                    }
-                    catch (UsernameAlreadyUsedException)
-                    {
-                        Broadcast("S|REGISTER|FAIL", source);
-                        Console.WriteLine("Failed register");
-                    }              
-                    break;
-
-                case "MATCH":
-                    try
-                    {
-                        Player player = GetLoggedPlayerBy(source);
-                        switch (split[2])
+                switch (split[1])
+                {
+                    case "LOGIN":
+                        if (split.Length < 4)
                         {
-                            // C|MATCH|CREATE|:animalSelection --respuesta--> S|MATCH|CREATED|:id|:playerColor
-                            case "CREATE":
-                                try
-                                {
-                                    // TODO: Esta conversion puede dar error, manejarlo
-                                    Animal selection = (Animal)Convert.ToInt16(split[3]);
-                                    Console.WriteLine("Animal selection: " + selection);
-                                    Match m = matchManager.CreateMatch(player, selection);
-                                    Console.WriteLine("Successfully created match with id: " + m.id);
-                                    // TODO: Tal vez se deberia avisar que se creo una partida a todos los clientes conectados
-                                    string message = string.Format("S|MATCH|CREATED|{0}|{1}", m.id, m.GetPlayerColor(player));
-                                    Console.WriteLine("Server sends: " + message);
-                                    Broadcast(message, player.socket);
-                                }
-                                catch (PlayerAlreadyInGameException)
-                                {
-                                    Console.WriteLine("Player already in match");
-                                    Broadcast("S|ERROR|ALREADY_IN_MATCH", source);
-                                }
-                                break;
+                            Console.WriteLine("Mensaje incompleto");
+                            Broadcast("S|LOGIN|FAIL", source);
+                        }
+                        HandleLogin(source, split[2], split[3]);
+                        break;
 
-                            // C|MATCH|JOIN|:id|:animalSelection --respuesta--> S|MATCH|JOINED|:matchId|:username|:playerColor|:nPlayers|
-                            case "JOIN":
-                                int matchId = Convert.ToInt16(split[3]);
-                                Animal animal = (Animal)Convert.ToInt16(split[4]);
-                                try
-                                {
-                                    Match m = matchManager.JoinMatch(matchId, player, animal);
-                                    string message = string.Format("S|MATCH|JOINED|{0}|{1}|{2}|{3}", 
-                                        m.id, player.username, m.GetPlayerColor(player), m.GetPlayers().Count);
+                    case "REGISTER":
+                        try
+                        {
+                            playerDao.SavePlayer(new Player(split[2], split[3]));
+                            Broadcast("S|REGISTER|SUCCESS", source);
+                            Console.WriteLine("Successfully registered..");
+                        }
+                        catch (UsernameAlreadyUsedException)
+                        {
+                            Broadcast("S|REGISTER|FAIL", source);
+                            Console.WriteLine("Failed register");
+                        }
+                        break;
 
-                                    Console.WriteLine("Sent: " + message);
-                                    // Cada vez que un jugador se una, hay que avisar a todos los demas miembros de la partida
-                                    Broadcast(message, m.GetPlayers());
-                                }
-                                catch (Exception e)
-                                {
-                                    if (e is AnimalAlreadySelectedException)
+                    case "MATCH":
+                        try
+                        {
+                            Player player = GetLoggedPlayerBy(source);
+                            switch (split[2])
+                            {
+                                // C|MATCH|CREATE|:animalSelection --respuesta--> S|MATCH|CREATED|:id|:playerColor
+                                case "CREATE":
+                                    try
                                     {
-                                        Console.WriteLine("Error: Animal already selected");
-                                        Broadcast("S|ERROR|ANIMAL_ALREADY_SELECTED", player.socket);
-                                    } else if (e is ArgumentException)
-                                    {
-                                        Console.WriteLine("Error: Invalid match id");
-                                        Broadcast("S|ERROR|INVALID_MATCH_ID", player.socket);
+                                        Animal selection = (Animal)Convert.ToInt16(split[3]);
+                                        Console.WriteLine("Animal selection: " + selection);
+                                        Match m = matchManager.CreateMatch(player, selection);
+                                        Console.WriteLine("Successfully created match with id: " + m.id);
+                                        // TODO: Tal vez se deberia avisar que se creo una partida a todos los clientes conectados
+                                        string message = string.Format("S|MATCH|CREATED|{0}|{1}", m.id, m.GetPlayerColor(player));
+                                        Console.WriteLine("Server sends: " + message);
+                                        Broadcast(message, player.socket);
                                     }
-                                    else if (e is PlayerAlreadyInGameException)
+                                    catch (Exception e)
                                     {
-                                        Console.WriteLine("Error: Player already in a match");
-                                        Broadcast("S|ERROR|ALREADY_IN_MATCH", player.socket);
+                                        if (e is PlayerAlreadyInGameException)
+                                        {
+                                            Console.WriteLine("Player already in match");
+                                            Broadcast("S|ERROR|ALREADY_IN_MATCH", source);
+                                        }
+                                        else if (e is FormatException || e is InvalidAnimalSelectionException)
+                                        {
+                                            Console.WriteLine("Seleccion de animal no es valida.");
+                                            Broadcast("S|ERROR|INVALID_SELECTION", source);
+                                        }
+                                        else
+                                        {
+                                            // Cualquier otra excepcion recibida, de manera que nunca crashee el servidor al crear una partida
+                                            Console.WriteLine("Unhandled error: " + e.Message);
+                                            Broadcast("S|ERROR|UNKNOWN_ERROR", source);
+                                        }
                                     }
-                                }
-                                break;
+                                    break;
 
-                            // C|MATCH|PLAY|{ROLL | SELECT_PIECE}
-                            case "PLAY":                                
-                                try
-                                {
-                                    Match match = matchManager.FindMatchBy(player);
-
-                                    switch (split[3])
+                                // C|MATCH|JOIN|:id|:animalSelection --respuesta--> S|MATCH|JOINED|:matchId|:username|:playerColor|:nPlayers|
+                                case "JOIN":
+                                    int matchId = Convert.ToInt16(split[3]);
+                                    Animal animal = (Animal)Convert.ToInt16(split[4]);
+                                    try
                                     {
-                                        // C|MATCH|PLAY|ROLL --respuesta--> S|MATCH|PLAY|:matchId|ROLLED|:usernameJugador|:diceRoll|:indexDeFichasMovibles
-                                        case "ROLL":
-                                            // Generar numero random y mandarselo a todos los players de la partida.
-                                            // En el Match, se genera el numero y se mantiene, pero no se mueve el currentPlayer
-                                            // pues hay que esperar a que este le indique que ficha desea mover (con el mensaje
-                                            // SELECT_PIECE)
-                                            int rolled = match.RollDice(player);
-                                            List<int> fichasMovibles = match.MovablePieces(player, rolled);
-                                            string message = string.Format("S|MATCH|PLAY|{0}|ROLLED|{1}|{2}|{3}", 
-                                                match.id, player.username, rolled, string.Join(",", fichasMovibles));
-                                            Console.WriteLine("Sent: " + message);
-                                            Broadcast(message, match.GetPlayers());
-                                            break;
+                                        Match m = matchManager.JoinMatch(matchId, player, animal);
+                                        string message = string.Format("S|MATCH|JOINED|{0}|{1}|{2}|{3}",
+                                            m.id, player.username, m.GetPlayerColor(player), m.GetPlayers().Count);
 
-                                        // C|MATCH|PLAY|SELECT_PIECE|:pieceIndex --respuesta--> S|MATCH|PLAY|:color|:pieceIndex|:nMovements
-                                        case "SELECT_PIECE":
-                                            // El servidor deberia hacer un Broadcast a la partida indicando el color, ficha y numero
-                                            // de movimientos ejecutados.
-                                            int pieceIndex = Convert.ToInt16(split[4]);
-                                            try
-                                            {
-                                                int movimientosEjecutados = match.PlayTurn(player, pieceIndex);
-                                                message = string.Format("S|MATCH|PLAY|{0}|{1}|{2}",
-                                                    match.GetPlayerColor(player), pieceIndex, movimientosEjecutados);
+                                        Console.WriteLine("Sent: " + message);
+                                        // Cada vez que un jugador se una, hay que avisar a todos los demas miembros de la partida
+                                        Broadcast(message, m.GetPlayers());
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        if (e is AnimalAlreadySelectedException)
+                                        {
+                                            Console.WriteLine("Error: Animal already selected");
+                                            Broadcast("S|ERROR|ANIMAL_ALREADY_SELECTED", player.socket);
+                                        }
+                                        else if (e is ArgumentException)
+                                        {
+                                            Console.WriteLine("Error: Invalid match id");
+                                            Broadcast("S|ERROR|INVALID_MATCH_ID", player.socket);
+                                        }
+                                        else if (e is PlayerAlreadyInGameException)
+                                        {
+                                            Console.WriteLine("Error: Player already in a match");
+                                            Broadcast("S|ERROR|ALREADY_IN_MATCH", player.socket);
+                                        } else if (e is InvalidAnimalSelectionException)
+                                        {
+                                            Console.WriteLine("Seleccion de animal no es valida.");
+                                            Broadcast("S|ERROR|INVALID_SELECTION", source);
+                                        } else if (e is FormatException) {
+                                            Console.WriteLine("Animal seleccionado o ID de la partida invalido.");
+                                            Broadcast("S|ERROR|FORMAT_ERROR", source);
+                                        }
+                                    }
+                                    break;
+
+                                // C|MATCH|PLAY|{ROLL | SELECT_PIECE}
+                                case "PLAY":
+                                    try
+                                    {
+                                        Match match = matchManager.FindMatchBy(player);
+
+                                        switch (split[3])
+                                        {
+                                            // C|MATCH|PLAY|ROLL --respuesta--> S|MATCH|PLAY|:matchId|ROLLED|:usernameJugador|:diceRoll|:indexDeFichasMovibles
+                                            case "ROLL":
+                                                // Generar numero random y mandarselo a todos los players de la partida.
+                                                // En el Match, se genera el numero y se mantiene, pero no se mueve el currentPlayer
+                                                // pues hay que esperar a que este le indique que ficha desea mover (con el mensaje
+                                                // SELECT_PIECE)
+                                                int rolled = match.RollDice(player);
+                                                List<int> fichasMovibles = match.MovablePieces(player, rolled);
+                                                string message = string.Format("S|MATCH|PLAY|{0}|ROLLED|{1}|{2}|{3}",
+                                                    match.id, player.username, rolled, string.Join(",", fichasMovibles));
                                                 Console.WriteLine("Sent: " + message);
                                                 Broadcast(message, match.GetPlayers());
-                                            }
-                                            catch (PieceCantBeMovedException)
-                                            {
-                                                Console.WriteLine("Pieza no puede ser movida");
-                                                // TODO: Broadcast al player indicando el error
-                                            }
-                                            break;
-                                    }
-                                } catch (Exception e)
-                                {
-                                    // TODO: Broadcast mensaje de error respectivo
-                                    if (e is ArgumentException)
-                                    {
-                                        Console.WriteLine("Player not in a match");
-                                    }
-                                    else if (e is NotYourTurnException)
-                                    {
-                                        Console.WriteLine("No es el turno del jugador");
-                                    }
-                                    else if (e is MatchNotFullException)
-                                    {
-                                        Console.WriteLine("No se puede jugar la partida, faltan jugadores");
-                                    }
-                                }
-                                break;
-                        }
+                                                break;
 
-                    } catch (ArgumentException)
-                    {
-                        Console.WriteLine("Non-logged user triying to play match");
-                        Broadcast("S|ERROR|NEEDS_LOGIN", source);
-                    }
-                    break;
+                                            // C|MATCH|PLAY|SELECT_PIECE|:pieceIndex --respuesta--> S|MATCH|PLAY|MOVE|:color|:pieceIndex|:nMovements
+                                            case "SELECT_PIECE":
+                                                // El servidor deberia hacer un Broadcast a la partida indicando el color, ficha y numero
+                                                // de movimientos ejecutados.
+                                                int pieceIndex = Convert.ToInt16(split[4]);
+                                                try
+                                                {
+                                                    int movimientosEjecutados = match.PlayTurn(player, pieceIndex);
+                                                    message = string.Format("S|MATCH|PLAY|MOVE|{0}|{1}|{2}",
+                                                        match.GetPlayerColor(player), pieceIndex, movimientosEjecutados);
+                                                    Console.WriteLine("Sent: " + message);
+                                                    Broadcast(message, match.GetPlayers());
+                                                }
+                                                catch (PieceCantBeMovedException)
+                                                {
+                                                    Console.WriteLine("Pieza no puede ser movida");
+                                                    Broadcast("S|ERROR|UNMOVABLE_PIECE", source);
+                                                }
+                                                break;
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        if (e is ArgumentException)
+                                        {
+                                            Console.WriteLine("Player not in a match");
+                                            Broadcast("S|ERROR|NOT_IN_MATCH", source);
+                                        }
+                                        else if (e is NotYourTurnException)
+                                        {
+                                            Console.WriteLine("No es el turno del jugador");
+                                            Broadcast("S|ERROR|NOT_YOUR_TURN", source);
+                                        }
+                                        else if (e is MatchNotFullException)
+                                        {
+                                            Console.WriteLine("No se puede jugar la partida, faltan jugadores");
+                                            Broadcast("S|ERROR|MATCH_NOT_FULL", source);
+                                        }
+                                    }
+                                    break;
+                            }
+
+                        }
+                        catch (ArgumentException)
+                        {
+                            Console.WriteLine("Non-logged user triying to play match");
+                            Broadcast("S|ERROR|NEEDS_LOGIN", source);
+                        }
+                        break;
+                }
+            }
+            catch (IndexOutOfRangeException)
+            {
+                Console.WriteLine("Instruccion recibida invalida: " + data);
             }
         }
 
@@ -338,7 +368,8 @@ namespace ludorill_server_core
                 }
                 else
                     return false;
-            } catch
+            }
+            catch
             {
                 return false;
             }
@@ -346,7 +377,7 @@ namespace ludorill_server_core
 
         private void HandleLogin(TcpClient source, string username, string password)
         {
-            foreach(Player logged in loggedClients)
+            foreach (Player logged in loggedClients)
             {
                 // Si ya se tiene el mismo socket, significa que es el mismo cliente
                 // Si tiene el mismo username significa que ya esta logeado en un cliente 
@@ -387,7 +418,7 @@ namespace ludorill_server_core
 
         private Player GetLoggedPlayerBy(TcpClient client)
         {
-            foreach(Player p in loggedClients)
+            foreach (Player p in loggedClients)
             {
                 if (p.socket == client)
                     return p;
@@ -399,7 +430,7 @@ namespace ludorill_server_core
         private List<TcpClient> PlayerListToClientList(List<Player> players)
         {
             List<TcpClient> tcpClients = new List<TcpClient>();
-            foreach(Player p in players)
+            foreach (Player p in players)
             {
                 tcpClients.Add(p.socket);
             }
