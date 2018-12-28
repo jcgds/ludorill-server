@@ -228,7 +228,7 @@ namespace ludorill_server_core
                                     {
                                         Match m = matchManager.CreateMatch(player, split[3]);
                                         Console.WriteLine("Successfully created match with id: " + m.id);
-                                        string message = string.Format("S|MATCH|CREATED|{0}|{1}|{2}|{3}|{4}", m.id, player.username, m.GetPlayerColor(player), m.name, m.GetPlayerAnimal(player));
+                                        string message = string.Format("S|MATCH|CREATED|{0}|{1}|{2}|{3}|{4}", m.id, player.username, (int)m.GetPlayerColor(player), m.name, (int)m.GetPlayerAnimal(player));
                                         Console.WriteLine("Server sends: " + message);
                                         Broadcast(message, loggedClients);
                                     }
@@ -255,7 +255,7 @@ namespace ludorill_server_core
                                     {
                                         Match m = matchManager.JoinMatch(matchId, player);
                                         string message = string.Format("S|MATCH|JOINED|{0}|{1}|{2}|{3}|{4}",
-                                            m.id, player.username, m.GetPlayerColor(player), m.GetPlayers().Count, m.GetPlayerAnimal(player));
+                                            m.id, player.username, (int)m.GetPlayerColor(player), m.GetPlayers().Count, (int)m.GetPlayerAnimal(player));
 
                                         Console.WriteLine("Sent: " + message);
                                         //Broadcast(message, m.GetPlayers());
