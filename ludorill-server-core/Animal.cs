@@ -14,6 +14,6 @@ namespace ludorill_server_core
         GIRAFFE = 1, 
         COW = 2, 
         BEAR = 3,
-        AMOUNT_OF_CHOICES = 4
+        NONE = 999
     }
 }
