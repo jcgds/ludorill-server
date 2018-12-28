@@ -40,9 +40,9 @@ Mensajes relacionados a la creación de partidas y el progreso de las partidas.
 | Usuario sin sesion iniciada |`S\|ERROR\|NEEDS_LOGIN`| El cliente debe iniciar sesion para poder ejecutar la accion |
 
 ### Crear partida
-Mensaje: `C|MATCH|CREATE|:matchName|:animalSelection`
+Mensaje: `C|MATCH|CREATE|:matchName`
 
-**Valores de parametro `animalSelection`:** 
+**Valores validos `animalSelection`:** 
 
 |Animal| Valor |
 |:-------:|:-----:|
@@ -55,23 +55,20 @@ Mensaje: `C|MATCH|CREATE|:matchName|:animalSelection`
 
 |Condición|Mensaje|Descripción|
 | ------------- |:-----------------:|-------------|
-|Partida creada| `S\|MATCH\|CREATED\|{idPartida}\|{colorDelJugador}\|{matchName}` | Se logro crear la partida,<br /> devuelve el id de la partida, el color que le corresponde al jugador que la creó y el nombre de la partida. <br/>**Este mensaje se envia a todos los jugadores que hayan iniciado sesion**|
+|Partida creada| `S\|MATCH\|CREATED\|{idPartida}\|{usernameCreador}\|{colorDelJugador}\|{matchName}\|{animalCreador}` | Se logro crear la partida,<br /> devuelve el id de la partida, el username, color y animal del jugador que la creo, y el nombre de la partida. <br/>**Este mensaje se envia a todos los jugadores que hayan iniciado sesion**|
 |Usuario que intenta crear partida <br /> ya está en una en progreso| `S\|ERROR\|ALREADY_IN_MATCH` | No puede estar en varias partidas simultaneamente |
-|Seleccion de animal invalida| `S\|ERROR\|INVALID_SELECTION` | El `:animalSelection` enviado no es un numero o se pasa del rango de opciones disponibles |
 | Error no manejado | `S\|ERROR\|UNKNOWN_ERROR` | Error no manejado directamente, pero se asume que no se logro crear la partida |
 
 ### Unirse a partida
-Mensaje: `C|MATCH|JOIN|:matchId|:animalSelection`
+Mensaje: `C|MATCH|JOIN|:matchId`
 
 **Respuestas del servidor:**
 
 |Condición|Mensaje|Descripción|
 | ------------- |:-----------------:|-------------|
-|Union a partida exitosa| `S\|MATCH\|JOINED\|{matchId}\|{playerUsername}\|{playerColor}\|{cantidadDeJugadores}`| **Esta respuesta se envia a todos los miembros de la partida**|
-|Animal ya seleccionado|`S\|ERROR\|ANIMAL_ALREADY_SELECTED`|El `animalSelection` ya esta en uso por otro jugador en la partida|
+|Union a partida exitosa| `S\|MATCH\|JOINED\|{matchId}\|{playerUsername}\|{playerColor}\|{cantidadDeJugadores}\|{playerAnimal}`| **Esta respuesta se envia a todos los miembros de la partida**|
 |ID de partida invalido|`S\|ERROR\|INVALID_MATCH_ID`| No existe una partida con el `matchId` recibido|
 |Usuario ya esta en una partida| `S\|ERROR\|ALREADY_IN_MATCH` | No puede estar en varias partidas simultaneamente |
-|Seleccion de animal invalida| `S\|ERROR\|INVALID_SELECTION` | El `:animalSelection` enviado no es un numero o se pasa del rango de opciones disponibles |
 
 ### Lanzar dado
 Esta accion solo genera el numero al azar y lo guarda para ser ejecutado cuando se mande una accion `SELECT_PIECE` pues se debe seleccionar la pieza que sera movida.
