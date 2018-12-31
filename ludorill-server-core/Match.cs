@@ -10,6 +10,7 @@ namespace ludorill_server_core
 {
     class Match
     {
+        public int REQ_PLAYERS = 2;
         public int id;
         public string name;
         private Dictionary<Player, Color> playersToColors;
@@ -40,7 +41,7 @@ namespace ludorill_server_core
          */
         public int PlayTurn(Player p, int ficha)
         {
-            if (playersToColors.Count < 4)
+            if (playersToColors.Count < REQ_PLAYERS)
                 throw new MatchNotFullException();
 
             if (currentPlayerColor != GetPlayerColor(p))
@@ -71,7 +72,7 @@ namespace ludorill_server_core
 
         public int RollDice(Player p)
         {
-            if (playersToColors.Count < 4)
+            if (playersToColors.Count < REQ_PLAYERS)
                 throw new MatchNotFullException();
 
             if (currentPlayerColor != GetPlayerColor(p))
@@ -85,7 +86,7 @@ namespace ludorill_server_core
             }
             
             Random r = new Random();
-            lastDiceRoll = r.Next(1, 7);
+            lastDiceRoll = 6; //r.Next(1, 7);
             Console.WriteLine("Rolled: " + lastDiceRoll);
             lastDiceRollExecuted = false;
 
@@ -97,7 +98,7 @@ namespace ludorill_server_core
 
         public void Join(Player p)
         {
-            if (playersToColors.Count == 4)
+            if (playersToColors.Count == REQ_PLAYERS)
                 throw new MatchIsFullException();
 
             playersToColors.Add(p, lastSelectedColor++);
