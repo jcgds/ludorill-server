@@ -284,7 +284,7 @@ namespace ludorill_server_core
 
                                         switch (split[3])
                                         {
-                                            // C|MATCH|PLAY|ROLL --respuesta--> S|MATCH|PLAY|:matchId|ROLLED|:usernameJugador|:diceRoll|:indexDeFichasMovibles
+                                            // C|MATCH|PLAY|ROLL --respuesta--> S|MATCH|PLAY|ROLLED|:matchId|:usernameJugador|:playerColor|:diceRoll|:indexDeFichasMovibles
                                             case "ROLL":
                                                 // Generar numero random y mandarselo a todos los players de la partida.
                                                 // En el Match, se genera el numero y se mantiene, pero no se mueve el currentPlayer
@@ -292,8 +292,8 @@ namespace ludorill_server_core
                                                 // SELECT_PIECE)
                                                 int rolled = match.RollDice(player);
                                                 List<int> fichasMovibles = match.MovablePieces(player, rolled);
-                                                string message = string.Format("S|MATCH|PLAY|{0}|ROLLED|{1}|{2}|{3}",
-                                                    match.id, player.username, rolled, string.Join(",", fichasMovibles));
+                                                string message = string.Format("S|MATCH|PLAY|ROLLED|{0}|{1}|{2}|{3}|{4}",
+                                                    match.id, player.username, (int)match.GetPlayerColor(player), rolled, string.Join(",", fichasMovibles));
                                                 Console.WriteLine("Sent: " + message);
                                                 Broadcast(message, match.GetPlayers());
                                                 break;

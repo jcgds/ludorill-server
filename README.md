@@ -79,7 +79,7 @@ Mensaje: `C|MATCH|PLAY|ROLL`
 
 |Condición|Mensaje|Descripción|
 | ------------- |:-----------------:|-------------|
-|Rolled successfully|`S\|MATCH\|PLAY\|{matchId}\|ROLLED\|{playerUsername}\|{diceRoll}\|{fichasMovibles}`|`playerUsername` es el nombre de usuario del jugador que lanzo el dado. <br />`diceRoll` es el numero que saco al lanzar el dado.<br /> `fichasMovibles` es una lista separada por comas de los indices de las piezas que puede mover el usuario (Cuales de las 4 piezas puede mover, por ejemplo: `0,1,3`).<br />**Este mensaje se manda a todos los jugadores de la partida**|
+|Rolled successfully|`S\|MATCH\|PLAY\|ROLLED\|{matchId}\|{playerUsername}\|{playerColor}\|{diceRoll}\|{fichasMovibles}`|`playerUsername` es el nombre de usuario del jugador que lanzo el dado. <br />`diceRoll` es el numero que saco al lanzar el dado.<br /> `fichasMovibles` es una lista separada por comas de los indices de las piezas que puede mover el usuario (Cuales de las 4 piezas puede mover, por ejemplo: `0,1,3`).<br />**Este mensaje se manda a todos los jugadores de la partida**|
 |Jugador no pertenece a partida|`S\|ERROR\|NOT_IN_MATCH`| El jugador no esta en ninguna partida |
 |No es el turno del jugador| `S\|ERROR\|NOT_YOUR_TURN`||
 |La partida no esta llena|`S\|ERROR\|MATCH_NOT_FULL`| Hecho para no permitir que los jugadores jueguen hasta que la partida se llene y comience|
