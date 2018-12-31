@@ -222,15 +222,13 @@ namespace ludorill_server_core
                             Player player = GetLoggedPlayerBy(source);
                             switch (split[2])
                             {
-                                // C|MATCH|CREATE|:matchName|:animalSelection --respuesta--> S|MATCH|CREATED|:id|:playerColor
+                                // C|MATCH|CREATE|:matchName --respuesta--> S|MATCH|CREATED|:matchId|:creatorUsername|:playerColor|:matchName|:animal
                                 case "CREATE":
                                     try
                                     {
-                                        Animal selection = (Animal)Convert.ToInt16(split[4]);
-                                        Console.WriteLine("Animal selection: " + selection);
-                                        Match m = matchManager.CreateMatch(player, selection, split[3]);
+                                        Match m = matchManager.CreateMatch(player, split[3]);
                                         Console.WriteLine("Successfully created match with id: " + m.id);
-                                        string message = string.Format("S|MATCH|CREATED|{0}|{1}|{2}", m.id, m.GetPlayerColor(player), m.name);
+                                        string message = string.Format("S|MATCH|CREATED|{0}|{1}|{2}|{3}|{4}", m.id, player.username, (int)m.GetPlayerColor(player), m.name, (int)m.GetPlayerAnimal(player));
                                         Console.WriteLine("Server sends: " + message);
                                         Broadcast(message, loggedClients);
                                     }
@@ -241,11 +239,6 @@ namespace ludorill_server_core
                                             Console.WriteLine("Player already in match");
                                             Broadcast("S|ERROR|ALREADY_IN_MATCH", source);
                                         }
-                                        else if (e is FormatException || e is InvalidAnimalSelectionException)
-                                        {
-                                            Console.WriteLine("Seleccion de animal no es valida.");
-                                            Broadcast("S|ERROR|INVALID_SELECTION", source);
-                                        }
                                         else
                                         {
                                             // Cualquier otra excepcion recibida, de manera que nunca crashee el servidor al crear una partida
@@ -255,15 +248,14 @@ namespace ludorill_server_core
                                     }
                                     break;
 
-                                // C|MATCH|JOIN|:id|:animalSelection --respuesta--> S|MATCH|JOINED|:matchId|:username|:playerColor|:nPlayers|
+                                // C|MATCH|JOIN|:id --respuesta--> S|MATCH|JOINED|:matchId|:username|:playerColor|:nPlayers|:playerAnimal
                                 case "JOIN":
                                     int matchId = Convert.ToInt16(split[3]);
-                                    Animal animal = (Animal)Convert.ToInt16(split[4]);
                                     try
                                     {
-                                        Match m = matchManager.JoinMatch(matchId, player, animal);
-                                        string message = string.Format("S|MATCH|JOINED|{0}|{1}|{2}|{3}",
-                                            m.id, player.username, m.GetPlayerColor(player), m.GetPlayers().Count);
+                                        Match m = matchManager.JoinMatch(matchId, player);
+                                        string message = string.Format("S|MATCH|JOINED|{0}|{1}|{2}|{3}|{4}",
+                                            m.id, player.username, (int)m.GetPlayerColor(player), m.GetPlayers().Count, (int)m.GetPlayerAnimal(player));
 
                                         Console.WriteLine("Sent: " + message);
                                         //Broadcast(message, m.GetPlayers());
@@ -271,12 +263,7 @@ namespace ludorill_server_core
                                     }
                                     catch (Exception e)
                                     {
-                                        if (e is AnimalAlreadySelectedException)
-                                        {
-                                            Console.WriteLine("Error: Animal already selected");
-                                            Broadcast("S|ERROR|ANIMAL_ALREADY_SELECTED", player.socket);
-                                        }
-                                        else if (e is ArgumentException)
+                                        if (e is ArgumentException)
                                         {
                                             Console.WriteLine("Error: Invalid match id");
                                             Broadcast("S|ERROR|INVALID_MATCH_ID", player.socket);
@@ -285,13 +272,6 @@ namespace ludorill_server_core
                                         {
                                             Console.WriteLine("Error: Player already in a match");
                                             Broadcast("S|ERROR|ALREADY_IN_MATCH", player.socket);
-                                        } else if (e is InvalidAnimalSelectionException)
-                                        {
-                                            Console.WriteLine("Seleccion de animal no es valida.");
-                                            Broadcast("S|ERROR|INVALID_SELECTION", source);
-                                        } else if (e is FormatException) {
-                                            Console.WriteLine("Animal seleccionado o ID de la partida invalido.");
-                                            Broadcast("S|ERROR|FORMAT_ERROR", source);
                                         }
                                     }
                                     break;

@@ -13,21 +13,25 @@ namespace ludorill_server_core
         public int id;
         public string name;
         private Dictionary<Player, Color> playersToColors;
-        private Dictionary<Player, Animal> animalSelections;
+        private Dictionary<Player, Animal> assignedAnimals;
         private Board board;
+
         // TODO: Cambiar esta asigancion default por el sistema en el que cada jugador rollea y el que saque mas es el primero
         private Color currentPlayerColor = Color.BLUE;
         private int lastDiceRoll;
         private bool lastDiceRollExecuted = true;
-        // Usada para asignar los colores a los jugadores e=segun se vayan uniendo a la partida
+
+        // Usada para asignar los colores a los jugadores segun se vayan uniendo a la partida
         private Color lastSelectedColor = Color.BLUE;
+        private Animal lastUsedAnimal = Animal.ELEPHANT;
+
 
         public Match(int id, string name)
         {
             this.id = id;
             this.name = name;
             playersToColors = new Dictionary<Player, Color>();
-            animalSelections = new Dictionary<Player, Animal>();
+            assignedAnimals = new Dictionary<Player, Animal>();
             board = new Board();
         }
 
@@ -91,32 +95,18 @@ namespace ludorill_server_core
             return lastDiceRoll;
         }
 
-        public void Join(Player p, Animal selection)
+        public void Join(Player p)
         {
             if (playersToColors.Count == 4)
                 throw new MatchIsFullException();
 
-            if (IsAlreadySelected(selection))
-                throw new AnimalAlreadySelectedException();
-
             playersToColors.Add(p, lastSelectedColor++);
-            animalSelections.Add(p, selection);
+            assignedAnimals.Add(p, lastUsedAnimal++);
         }
 
         public bool Has(Player player)
         {
             return playersToColors.TryGetValue(player, out Color c);
-        }
-
-        public bool IsAlreadySelected(Animal animal)
-        {
-            foreach(KeyValuePair<Player, Animal> keyPair in animalSelections)
-            {
-                if (keyPair.Value == animal)
-                    return true;
-            }
- 
-            return false;
         }
 
         public List<Player> GetPlayers()
@@ -139,6 +129,20 @@ namespace ludorill_server_core
                 // TODO: Throw Exception?
                 return Color.EMPTY;
             }           
+        }
+
+        public Animal GetPlayerAnimal(Player p)
+        {
+            bool found = assignedAnimals.TryGetValue(p, out Animal c);
+            if (found)
+            {
+                return c;
+            }
+            else
+            {
+                // TODO: Throw Exception?
+                return Animal.NONE;
+            }
         }
 
         public List<int> MovablePieces(Player p, int diceRoll)
