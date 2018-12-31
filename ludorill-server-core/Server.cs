@@ -307,7 +307,7 @@ namespace ludorill_server_core
                                                 {
                                                     int movimientosEjecutados = match.PlayTurn(player, pieceIndex);
                                                     message = string.Format("S|MATCH|PLAY|MOVE|{0}|{1}|{2}",
-                                                        match.GetPlayerColor(player), pieceIndex, movimientosEjecutados);
+                                                        (int)match.GetPlayerColor(player), pieceIndex, movimientosEjecutados);
                                                     Console.WriteLine("Sent: " + message);
                                                     Broadcast(message, match.GetPlayers());
                                                 }
