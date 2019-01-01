@@ -10,14 +10,15 @@ namespace ludorill_server_core
 {
     class Match
     {
-        public int REQ_PLAYERS = 2;
+        public int REQ_PLAYERS = 4;
+        public int AMOUNT_OF_PIECES_TO_WIN = 4;
+
         public int id;
         public string name;
         private Dictionary<Player, Color> playersToColors;
         private Dictionary<Player, Animal> assignedAnimals;
         private Board board;
 
-        // TODO: Cambiar esta asigancion default por el sistema en el que cada jugador rollea y el que saque mas es el primero
         private Color currentPlayerColor = Color.BLUE;
         private int lastDiceRoll;
         private bool lastDiceRollExecuted = true;
@@ -26,6 +27,8 @@ namespace ludorill_server_core
         private Color lastSelectedColor = Color.BLUE;
         private Animal lastUsedAnimal = Animal.ELEPHANT;
 
+        // Ganador de la partida
+        private Player WINNER;
 
         public Match(int id, string name)
         {
@@ -52,8 +55,17 @@ namespace ludorill_server_core
 
             playersToColors.TryGetValue(p, out Color playerColor);
             board.Move(playerColor, ficha, lastDiceRoll);
-            AssignTurnToNextplayer();
+            // Si es 6, el jugador repite el turno
+            if (lastDiceRoll != 6)
+                AssignTurnToNextplayer();
             lastDiceRollExecuted = true;
+
+            if (board.AmountOfCenterPiecesBy(GetPlayerColor(p)) == AMOUNT_OF_PIECES_TO_WIN)
+            {
+                // El jugador gano la partida!
+                WINNER = p;
+            }
+
             return lastDiceRoll;
         }
 
@@ -165,5 +177,20 @@ namespace ludorill_server_core
             return false;
         }
 
+        public bool IsInColorRoad(Player p, int pieceIndex)
+        {
+            playersToColors.TryGetValue(p, out Color c);
+            return board.IsInColorRoad(c, pieceIndex);
+        }
+
+        /*
+         * Unica manera de saber si hay un ganador, solo es el Getter
+         * porque no queremos que se pueda modificar externamente el ganador
+         * de la partida
+         */
+        public Player HasWinner()
+        {
+            return WINNER;
+        }
     }
 }

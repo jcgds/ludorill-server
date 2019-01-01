@@ -272,6 +272,14 @@ namespace ludorill_server_core
                                         {
                                             Console.WriteLine("Error: Player already in a match");
                                             Broadcast("S|ERROR|ALREADY_IN_MATCH", player.socket);
+                                        } else if (e is MatchIsFullException)
+                                        {
+                                            Console.WriteLine("Error: Match is already full");
+                                            Broadcast("S|ERROR|MATCH_IS_FULL", player.socket);
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Dafuck is this: " + e);
                                         }
                                     }
                                     break;
@@ -306,10 +314,22 @@ namespace ludorill_server_core
                                                 try
                                                 {
                                                     int movimientosEjecutados = match.PlayTurn(player, pieceIndex);
-                                                    message = string.Format("S|MATCH|PLAY|MOVE|{0}|{1}|{2}",
-                                                        (int)match.GetPlayerColor(player), pieceIndex, movimientosEjecutados);
-                                                    Console.WriteLine("Sent: " + message);
+                                                    message = string.Format("S|MATCH|PLAY|MOVE|{0}|{1}|{2}|{3}",
+                                                        (int)match.GetPlayerColor(player), 
+                                                        pieceIndex, 
+                                                        movimientosEjecutados, 
+                                                        match.IsInColorRoad(player, pieceIndex)
+                                                    );
+                                                    Console.WriteLine("Sent: " + message);                                                   
                                                     Broadcast(message, match.GetPlayers());
+                                                    Player winner = match.HasWinner();
+                                                    if (winner != null)
+                                                    {
+                                                        Console.WriteLine("La partida tiene un ganador: " + winner.username);
+                                                        string winnerNotice = string.Format("S|MATCH|WINNER|{0}|{1}|{2}", match.id, winner.username, (int)match.GetPlayerColor(winner));
+                                                        Broadcast(winnerNotice, match.GetPlayers());
+                                                        Console.WriteLine("Sent: " + winnerNotice);
+                                                    }
                                                 }
                                                 catch (PieceCantBeMovedException)
                                                 {
