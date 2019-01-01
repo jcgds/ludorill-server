@@ -14,7 +14,7 @@ namespace ludorill_server_core
             piecesByColor = new Dictionary<Color, Piece[]>();
             startCellsByColor = new Dictionary<Color, Cell>();
             InitializeBoardCells();
-            InitializePieces();          
+            InitializePieces();
         }
 
         /*
@@ -30,6 +30,10 @@ namespace ludorill_server_core
         }
 
 
+        /*
+         * Crea los objetos que almacenan el mapa y ademas llena el diccionario startCellsByColor
+         * que almacena las salidas por color.
+         */
         private void InitializeBoardCells()
         {
             // Creo 52 celdas contiguas, generando una lista enlazada circular
@@ -63,13 +67,18 @@ namespace ludorill_server_core
             }
         }
 
+        /*
+         * Crea el color road (o final road), conectandolo a la celda recibida
+         * como parametro.
+         */
         private void AddColorCells(Cell initial)
         {           
             Cell next = new Cell(initial.color);
-            initial.colorNext = initial;
+            initial.colorNext = next;
             for (int i = 1; i <= 5; i++)
             {
-                next.regularNext = new Cell(initial.color);
+                Cell nextStep = new Cell(initial.color);
+                next.regularNext = nextStep;
                 next = next.regularNext;
             }
         }
@@ -124,6 +133,38 @@ namespace ludorill_server_core
 
             return result;
         }
+
+        /*
+         * El color road (o final road) se refiere al camino de celdas de color que van al centro
+         * del tablero.
+         * 
+         * Este metodo devuelve un booleano que indica si una pieza esta en este camino, de manera
+         * que el cliente sepa que cuando pueda se meta en este camino sin tener programada explicitamente
+         * la logica.
+         */
+        public bool IsInColorRoad(Color c, int pieceIndex)
+        {
+            piecesByColor.TryGetValue(c, out Piece[] pieces);
+
+            return pieces[pieceIndex].currentPosition?.color != Color.EMPTY;
+        }
+
+        /*
+         * Devuelve la cantidad de piezas de un color que se encuentran en el centro del tablero,
+         * es decir, que ya no se pueden mover mas porque llegaron al objetivo.
+         */
+        public int AmountOfCenterPiecesBy(Color c)
+        {
+            piecesByColor.TryGetValue(c, out Piece[] pieces);
+            int result = 0;
+            foreach (Piece p in pieces)
+            {
+                if (p.inCenter)
+                    result++;
+            }
+
+            return result;
+        }
     }
 
     class Piece
@@ -149,10 +190,11 @@ namespace ludorill_server_core
 
             for (int i=0; i<amount; i++)
             {
+                Console.WriteLine("Current movements: " + movements);
                 if (currentPosition.colorNext != null && movements == 52)
                 {
                     currentPosition = currentPosition.colorNext;
-                } else
+                } else if (currentPosition.regularNext != null)
                 {
                     currentPosition = currentPosition.regularNext;
                 }
@@ -171,6 +213,7 @@ namespace ludorill_server_core
         {
             return new Piece[] { new Piece(c), new Piece(c), new Piece(c), new Piece(c) };
         }
+       
     }
 
     class Cell
