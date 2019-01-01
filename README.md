@@ -92,6 +92,7 @@ Mensaje: `C|MATCH|PLAY|SELECT_PIECE|:indiceDePieza`
 |Condición|Mensaje|Descripción|
 | ------------- |:-----------------:|-------------|
 |Movimiento exitoso |`S\|MATCH\|PLAY\|MOVE\|{playerColor}\|{indiceDePieza}\|{numeroDeMovimientos}`| Indica cuantas casillas se debe mover una determinada pieza de un color a todos los miembros de la partida.<br/>**Este mensaje se manda a todos los jugadores de la partida**|
+|**Ganador de partida detectado**| `S\|MATCH\|WINNER\|{matchId}\|{winnerUsername}\|{winnerColor}` | Despues de ejecutar el movimiento, el servidor detecto que hay un ganador.<br />**Este mensaje se envia a todos los miembros de la partida**|
 |Pieza seleccionada no se puede mover| `S\|ERROR\|UNMOVABLE_PIECE` | Las piezas que se pueden mover se reciben del servidor al lanzar el dado, donde se evalua cuales pueden ser movidas segun el numero que salio, por ejemplo si sale `6` puedes mover cualquier pieza|
 |Jugador no pertenece a partida|`S\|ERROR\|NOT_IN_MATCH`| El jugador no esta en ninguna partida |
 |No es el turno del jugador| `S\|ERROR\|NOT_YOUR_TURN`||
