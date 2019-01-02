@@ -74,6 +74,8 @@ namespace ludorill_server_core
          */
         private void AssignTurnToNextplayer()
         {
+            lastDiceRoll = 0;
+            lastDiceRollExecuted = true;
             Console.WriteLine("The turn was: " + currentPlayerColor);
             // Si es mayor a 3, significa que va de RED a BLUE
             if ((int)++currentPlayerColor > 3)
@@ -98,7 +100,7 @@ namespace ludorill_server_core
             }
             
             Random r = new Random();
-            lastDiceRoll = 6; //r.Next(1, 7);
+            lastDiceRoll = r.Next(1, 7);
             Console.WriteLine("Rolled: " + lastDiceRoll);
             lastDiceRollExecuted = false;
 
@@ -191,6 +193,11 @@ namespace ludorill_server_core
         public Player HasWinner()
         {
             return WINNER;
+        }
+
+        public Color GetCurrentPlayerColor()
+        {
+            return this.currentPlayerColor;
         }
     }
 }
