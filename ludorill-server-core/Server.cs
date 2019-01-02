@@ -300,13 +300,15 @@ namespace ludorill_server_core
                                                 // SELECT_PIECE)
                                                 int rolled = match.RollDice(player);
                                                 List<int> fichasMovibles = match.MovablePieces(player, rolled);
-                                                string message = string.Format("S|MATCH|PLAY|ROLLED|{0}|{1}|{2}|{3}|{4}",
-                                                    match.id, player.username, (int)match.GetPlayerColor(player), rolled, string.Join(",", fichasMovibles));
+                                                string message = string.Format("S|MATCH|PLAY|ROLLED|{0}|{1}|{2}|{3}|{4}|{5}",
+                                                    match.id, player.username, (int)match.GetPlayerColor(player), rolled, 
+                                                    fichasMovibles.Count == 0 ? "NONE" : string.Join(",", fichasMovibles),
+                                                    (int)match.GetCurrentPlayerColor()
+                                                );
                                                 Console.WriteLine("Sent: " + message);
                                                 Broadcast(message, match.GetPlayers());
                                                 break;
 
-                                            // C|MATCH|PLAY|SELECT_PIECE|:pieceIndex --respuesta--> S|MATCH|PLAY|MOVE|:color|:pieceIndex|:nMovements
                                             case "SELECT_PIECE":
                                                 // El servidor deberia hacer un Broadcast a la partida indicando el color, ficha y numero
                                                 // de movimientos ejecutados.
@@ -314,11 +316,12 @@ namespace ludorill_server_core
                                                 try
                                                 {
                                                     int movimientosEjecutados = match.PlayTurn(player, pieceIndex);
-                                                    message = string.Format("S|MATCH|PLAY|MOVE|{0}|{1}|{2}|{3}",
+                                                    message = string.Format("S|MATCH|PLAY|MOVE|{0}|{1}|{2}|{3}|{4}",
                                                         (int)match.GetPlayerColor(player), 
                                                         pieceIndex, 
                                                         movimientosEjecutados, 
-                                                        match.IsInColorRoad(player, pieceIndex)
+                                                        match.IsInColorRoad(player, pieceIndex),
+                                                        (int)match.GetCurrentPlayerColor()
                                                     );
                                                     Console.WriteLine("Sent: " + message);                                                   
                                                     Broadcast(message, match.GetPlayers());
@@ -430,8 +433,9 @@ namespace ludorill_server_core
                     loggedClients.Add(p);
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 Broadcast("S|LOGIN|FAIL", source);
             }
         }
