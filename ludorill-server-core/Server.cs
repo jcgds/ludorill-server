@@ -326,12 +326,14 @@ namespace ludorill_server_core
                                                     Console.WriteLine("Sent: " + message);                                                   
                                                     Broadcast(message, match.GetPlayers());
                                                     Player winner = match.HasWinner();
+                                                    // Si hay un ganador, avisamos a los miembros de la partida y cerramos la partida
                                                     if (winner != null)
                                                     {
                                                         Console.WriteLine("La partida tiene un ganador: " + winner.username);
                                                         string winnerNotice = string.Format("S|MATCH|WINNER|{0}|{1}|{2}", match.id, winner.username, (int)match.GetPlayerColor(winner));
                                                         Broadcast(winnerNotice, match.GetPlayers());
                                                         Console.WriteLine("Sent: " + winnerNotice);
+                                                        CloseMatch(match.id);
                                                     }
                                                 }
                                                 catch (PieceCantBeMovedException)
@@ -472,6 +474,14 @@ namespace ludorill_server_core
             }
 
             return null;
+        }
+
+        private void CloseMatch(int matchId)
+        {
+            matchManager.CloseMatch(matchId);
+            // TODO: Se puede hacer un broadcast que indique que se cerro una partida
+            // Asi se puede borrar del menu o algo
+            // -- Baja prioridad --
         }
     }
 }

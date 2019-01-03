@@ -81,5 +81,17 @@ namespace ludorill_server_core
             result = string.Join(',', pieces);
             return result;
         }
+
+        public void CloseMatch(int matchId)
+        {
+            for (int i=0; i < matches.Count; i++)
+            {
+                if (matches[i].id == matchId)
+                {
+                    matches.RemoveAt(i);
+                    break;
+                }
+            }
+        }
     }
 }
