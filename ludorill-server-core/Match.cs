@@ -11,7 +11,7 @@ namespace ludorill_server_core
     class Match
     {
         public int REQ_PLAYERS = 4;
-        public int AMOUNT_OF_PIECES_TO_WIN = 4;
+        public int AMOUNT_OF_PIECES_TO_WIN = 1;
 
         public int id;
         public string name;
@@ -74,7 +74,6 @@ namespace ludorill_server_core
          */
         private void AssignTurnToNextplayer()
         {
-            lastDiceRoll = 0;
             lastDiceRollExecuted = true;
             Console.WriteLine("The turn was: " + currentPlayerColor);
             // Si es mayor a 3, significa que va de RED a BLUE
@@ -100,7 +99,7 @@ namespace ludorill_server_core
             }
             
             Random r = new Random();
-            lastDiceRoll = r.Next(1, 7);
+            lastDiceRoll = r.Next(4, 7);
             Console.WriteLine("Rolled: " + lastDiceRoll);
             lastDiceRollExecuted = false;
 
