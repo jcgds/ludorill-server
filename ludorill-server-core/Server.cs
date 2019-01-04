@@ -222,13 +222,12 @@ namespace ludorill_server_core
                             Player player = GetLoggedPlayerBy(source);
                             switch (split[2])
                             {
-                                // C|MATCH|CREATE|:matchName --respuesta--> S|MATCH|CREATED|:matchId|:creatorUsername|:playerColor|:matchName|:animal
                                 case "CREATE":
                                     try
                                     {
                                         Match m = matchManager.CreateMatch(player, split[3]);
                                         Console.WriteLine("Successfully created match with id: " + m.id);
-                                        string message = string.Format("S|MATCH|CREATED|{0}|{1}|{2}|{3}|{4}", m.id, player.username, (int)m.GetPlayerColor(player), m.name, (int)m.GetPlayerAnimal(player));
+                                        string message = string.Format("S|MATCH|CREATED|{0}|{1}|{2}|{3}|{4}|{5}", m.id, player.username, (int)m.GetPlayerColor(player), m.name, (int)m.GetPlayerAnimal(player), (int)m.GetCurrentPlayerColor());
                                         Console.WriteLine("Server sends: " + message);
                                         Broadcast(message, loggedClients);
                                     }
@@ -248,14 +247,20 @@ namespace ludorill_server_core
                                     }
                                     break;
 
-                                // C|MATCH|JOIN|:id --respuesta--> S|MATCH|JOINED|:matchId|:username|:playerColor|:nPlayers|:playerAnimal
                                 case "JOIN":
                                     int matchId = Convert.ToInt16(split[3]);
                                     try
                                     {
                                         Match m = matchManager.JoinMatch(matchId, player);
-                                        string message = string.Format("S|MATCH|JOINED|{0}|{1}|{2}|{3}|{4}",
-                                            m.id, player.username, (int)m.GetPlayerColor(player), m.GetPlayers().Count, (int)m.GetPlayerAnimal(player));
+                                        int playerCount = m.GetPlayers().Count;
+                                        string message = string.Format("S|MATCH|JOINED|{0}|{1}|{2}|{3}|{4}|{5}|{6}",
+                                            m.id, player.username, 
+                                            (int)m.GetPlayerColor(player), 
+                                            playerCount, 
+                                            (int)m.GetPlayerAnimal(player),
+                                            (int)m.GetCurrentPlayerColor(),
+                                            m.FormattedListOfPlayers()
+                                        );
 
                                         Console.WriteLine("Sent: " + message);
                                         //Broadcast(message, m.GetPlayers());
@@ -312,16 +317,27 @@ namespace ludorill_server_core
                                             case "SELECT_PIECE":
                                                 // El servidor deberia hacer un Broadcast a la partida indicando el color, ficha y numero
                                                 // de movimientos ejecutados.
-                                                int pieceIndex = Convert.ToInt16(split[4]);
+                                                int pieceIndex = Convert.ToInt16(split[4]);                                              
+
                                                 try
                                                 {
                                                     int movimientosEjecutados = match.PlayTurn(player, pieceIndex);
-                                                    message = string.Format("S|MATCH|PLAY|MOVE|{0}|{1}|{2}|{3}|{4}",
+                                                    
+                                                    // Tratamos de conseguir la pieza que tenga colision
+                                                    Queue<int[]> collision = match.GetPieceThatHasToReturn();
+                                                    string collisionMsg = "NONE";
+                                                    if (collision.TryDequeue(out int[] pieceToReturn))
+                                                    {
+                                                        collisionMsg = string.Join(',', pieceToReturn);
+                                                    }
+
+                                                    message = string.Format("S|MATCH|PLAY|MOVE|{0}|{1}|{2}|{3}|{4}|{5}",
                                                         (int)match.GetPlayerColor(player), 
                                                         pieceIndex, 
                                                         movimientosEjecutados, 
                                                         match.IsInColorRoad(player, pieceIndex),
-                                                        (int)match.GetCurrentPlayerColor()
+                                                        (int)match.GetCurrentPlayerColor(),
+                                                        collisionMsg
                                                     );
                                                     Console.WriteLine("Sent: " + message);                                                   
                                                     Broadcast(message, match.GetPlayers());
