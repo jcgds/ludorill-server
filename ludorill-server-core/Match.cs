@@ -12,6 +12,7 @@ namespace ludorill_server_core
     {
         public int REQ_PLAYERS = 4;
         public int AMOUNT_OF_PIECES_TO_WIN = 1;
+        public int MAX_BACK_TO_BACK_TURNS = 2;
 
         public int id;
         public string name;
@@ -22,9 +23,11 @@ namespace ludorill_server_core
         private Color currentPlayerColor = Color.BLUE;
         private int lastDiceRoll;
         private bool lastDiceRollExecuted = true;
+        // Usado para no permitir repetir turno infinitamente si se sigue rolleando 6
+        private int backToBackTurns = 0; 
 
-        // Usada para asignar los colores a los jugadores segun se vayan uniendo a la partida
-        private Color lastSelectedColor = Color.BLUE;
+        // Usado para asignar los colores a los jugadores segun se vayan uniendo a la partida
+        private Color lastSelectedColor;
         private Animal lastUsedAnimal = Animal.ELEPHANT;
 
         // Ganador de la partida
@@ -37,6 +40,8 @@ namespace ludorill_server_core
             playersToColors = new Dictionary<Player, Color>();
             assignedAnimals = new Dictionary<Player, Animal>();
             board = new Board();
+            Random r = new Random();
+            currentPlayerColor = (Color)r.Next(0, 4);
         }
 
         /*
@@ -56,9 +61,13 @@ namespace ludorill_server_core
             playersToColors.TryGetValue(p, out Color playerColor);
             board.Move(playerColor, ficha, lastDiceRoll);
             // Si es 6, el jugador repite el turno
-            if (lastDiceRoll != 6)
+            if (lastDiceRoll != 6 || backToBackTurns == MAX_BACK_TO_BACK_TURNS)
+            {
                 AssignTurnToNextplayer();
+            }
+
             lastDiceRollExecuted = true;
+            backToBackTurns++;
 
             if (board.AmountOfCenterPiecesBy(GetPlayerColor(p)) == AMOUNT_OF_PIECES_TO_WIN)
             {
@@ -75,6 +84,8 @@ namespace ludorill_server_core
         private void AssignTurnToNextplayer()
         {
             lastDiceRollExecuted = true;
+            backToBackTurns = 0;
+
             Console.WriteLine("The turn was: " + currentPlayerColor);
             // Si es mayor a 3, significa que va de RED a BLUE
             if ((int)++currentPlayerColor > 3)
@@ -197,6 +208,34 @@ namespace ludorill_server_core
         public Color GetCurrentPlayerColor()
         {
             return this.currentPlayerColor;
+        }
+
+        public Queue<int[]> GetPieceThatHasToReturn()
+        {
+            return board.piecesToReturnHome;
+        }
+
+        /*
+         * Este metodo devuelve una lista de strings que contienen
+         * los datos de los usuarios que estan en la partida.
+         * 
+         * Formato del string: {(int)Color}-{Username}
+         */
+        public string FormattedListOfPlayers()
+        {
+            List<string> res = new List<string>();
+            foreach (Player p in playersToColors.Keys) {
+                if (playersToColors.TryGetValue(p, out Color pc))
+                {
+                    string toAppend = string.Format("{0}-{1}", (int)pc, p.username);
+                    res.Add(toAppend);
+                } else
+                {
+                    Console.WriteLine("BUG: No se consiguio color para jugador " + p.username);
+                }
+            }
+
+            return string.Join(',', res);
         }
     }
 }
