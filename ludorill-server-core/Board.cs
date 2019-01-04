@@ -146,7 +146,7 @@ namespace ludorill_server_core
         {
             piecesByColor.TryGetValue(c, out Piece[] pieces);
 
-            return pieces[pieceIndex].currentPosition?.color != Color.EMPTY;
+            return pieces[pieceIndex].currentPosition?.color == c;
         }
 
         /*

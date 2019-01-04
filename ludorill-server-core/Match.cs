@@ -99,7 +99,7 @@ namespace ludorill_server_core
             }
             
             Random r = new Random();
-            lastDiceRoll = r.Next(4, 7);
+            lastDiceRoll = r.Next(5, 7);
             Console.WriteLine("Rolled: " + lastDiceRoll);
             lastDiceRollExecuted = false;
 
