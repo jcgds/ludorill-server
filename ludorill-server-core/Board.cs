@@ -8,11 +8,15 @@ namespace ludorill_server_core
     {
         private Dictionary<Color, Piece[]> piecesByColor;
         private Dictionary<Color, Cell> startCellsByColor;
+        // int[2] donde [0] = Color y [1] = pieceIndex
+        public Queue<int[]> piecesToReturnHome;
 
         public Board()
         {
             piecesByColor = new Dictionary<Color, Piece[]>();
             startCellsByColor = new Dictionary<Color, Cell>();
+            piecesToReturnHome = new Queue<int[]>();
+
             InitializeBoardCells();
             InitializePieces();
         }
@@ -97,10 +101,35 @@ namespace ludorill_server_core
                     startCellsByColor.TryGetValue(currentPiece.color, out Cell startCell);
                     currentPiece.currentPosition = startCell;
                     movimientos--;
-                }
+                }           
 
-                currentPiece.Move(movimientos);              
+                currentPiece.Move(movimientos);
+
+                int[] collision = pieceInCell(currentPiece.currentPosition, currentPiece.color);
+                if (collision != null)
+                {                
+                    piecesToReturnHome.Enqueue(collision);
+                }
             }
+        }
+
+        /*
+         * Devuelve la pieza del color indicado que esta actualmente en la posicion indicada, o null si 
+         * no hay niguna pieza en la casilla indicada
+         */
+        private int[] pieceInCell(Cell cell, Color c)
+        {
+            foreach (Piece[] pArr in piecesByColor.Values)
+            {
+                for (int i=0; i < pArr.Length; i++)
+                {
+                    // Si hay una pieza en la celda, y es de otro color
+                    if (pArr[i].currentPosition == cell && pArr[i].color != c)
+                        return new int[2] {(int)pArr[i].color, i};
+                }
+            }
+
+            return null;
         }
 
         /*
@@ -227,4 +256,5 @@ namespace ludorill_server_core
             color = c;
         }
     }
+
 }
