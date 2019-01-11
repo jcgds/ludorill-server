@@ -55,7 +55,7 @@ Mensaje: `C|MATCH|CREATE|:matchName`
 
 |Condición|Mensaje|Descripción|
 | ------------- |:-----------------:|-------------|
-|Partida creada| `S\|MATCH\|CREATED\|{idPartida}\|{usernameCreador}\|{colorDelJugador}\|{matchName}\|{animalCreador}` | Se logro crear la partida,<br /> devuelve el id de la partida, el username, color y animal del jugador que la creo, y el nombre de la partida. <br/>**Este mensaje se envia a todos los jugadores que hayan iniciado sesion**|
+|Partida creada| `S\|MATCH\|CREATED\|{idPartida}\|{usernameCreador}\|{colorDelJugador}\|{matchName}\|{animalCreador}\|{colorDelPrimerTurno}` | Se logro crear la partida,<br /> devuelve el id de la partida, el username, color y animal del jugador que la creo, y el nombre de la partida. <br/>**Este mensaje se envia a todos los jugadores que hayan iniciado sesion**|
 |Usuario que intenta crear partida <br /> ya está en una en progreso| `S\|ERROR\|ALREADY_IN_MATCH` | No puede estar en varias partidas simultaneamente |
 | Error no manejado | `S\|ERROR\|UNKNOWN_ERROR` | Error no manejado directamente, pero se asume que no se logro crear la partida |
 
@@ -66,7 +66,7 @@ Mensaje: `C|MATCH|JOIN|:matchId`
 
 |Condición|Mensaje|Descripción|
 | ------------- |:-----------------:|-------------|
-|Union a partida exitosa| `S\|MATCH\|JOINED\|{matchId}\|{playerUsername}\|{playerColor}\|{cantidadDeJugadores}\|{playerAnimal}`| **Esta respuesta se envia a todos los miembros de la partida**|
+|Union a partida exitosa| `S\|MATCH\|JOINED\|{matchId}\|{playerUsername}\|{playerColor}\|{cantidadDeJugadores}\|{playerAnimal}\|{colorDeTurnoActual}\|{listaDeJugadoresEnPartida}`| **Esta respuesta se envia a todos los miembros de la partida**|
 |ID de partida invalido|`S\|ERROR\|INVALID_MATCH_ID`| No existe una partida con el `matchId` recibido|
 |Usuario ya esta en una partida| `S\|ERROR\|ALREADY_IN_MATCH` | No puede estar en varias partidas simultaneamente |
 
