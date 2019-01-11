@@ -54,6 +54,7 @@ namespace ludorill_server_core
                 StreamWriter writer = File.AppendText(PATH);
                 writer.WriteLine(string.Format("{0}:{1}", p.username, p.password));
                 writer.Flush();
+                writer.Close();
             }           
         }
 
