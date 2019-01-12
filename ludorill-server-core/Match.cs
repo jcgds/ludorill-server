@@ -11,7 +11,7 @@ namespace ludorill_server_core
     class Match
     {
         public int REQ_PLAYERS = 4;
-        public int AMOUNT_OF_PIECES_TO_WIN = 1;
+        public int AMOUNT_OF_PIECES_TO_WIN = 4;
         public int MAX_BACK_TO_BACK_TURNS = 2;
 
         public int id;
@@ -110,7 +110,7 @@ namespace ludorill_server_core
             }
             
             Random r = new Random();
-            lastDiceRoll = r.Next(5, 7);
+            lastDiceRoll = r.Next(1, 7);
             Console.WriteLine("Rolled: " + lastDiceRoll);
             lastDiceRollExecuted = false;
 

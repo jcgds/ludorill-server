@@ -12,7 +12,7 @@ namespace ludorill_server_core
 {
     class Server
     {
-        public int port = 6969;
+        public int port = 7500;
         private TcpListener server;
         private List<TcpClient> unloggedClients;
         private List<Player> loggedClients;
@@ -89,10 +89,19 @@ namespace ludorill_server_core
                     {
                         if (matchManager.IsAlreadyInAMatch(player))
                         {
-                            // Usuario loggeado en partida se desconecta ¿Que deberiamos hacer?
-                            // TODO: Manejar este caso
-                            // Aqui se podria avisar a los miembros de la partida que alguien se desconecto
-                            Console.WriteLine("{0} se desconecto pero esta en partida. FALTA IMPLEMENTAR ESTE CASO", player.username);
+                            // Usuario loggeado en partida se desconecta
+                            Match m = matchManager.FindMatchBy(player);
+                            // Lo almacenamos en una variable de copia pues al cerrar la partida se pierde la referencia a la partida
+                            int mId = m.id;
+                            var pList = m.GetPlayers();
+                            pList.Remove(player);
+
+                            Broadcast("S|MATCH|CLOSED|" + mId, pList);
+                            CloseMatch(mId);
+
+                            loggedClients.Remove(player);
+                            dc.Close();
+                            Console.WriteLine("{0} se desconecto. Partida {1} cerrada", player.username, mId);
                         }
                         else
                         {
