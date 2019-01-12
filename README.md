@@ -1,4 +1,14 @@
 # ludorill-server
+Pasos para correr el servidor:
+  1. Instalar `.NET Core 2.1`
+  2. Clonar este repositorio: `git clone https://github.com/jcgds/ludorill-server`
+  3. Moverse al repositorio clonado `cd ludorill-server/ludorill-server-core`
+  4. Ejecutar el programa `dotnet run`
+ 
+ Al ejecutarlo se presentarán dos opciones:
+  1. __Correr servidor__: Ejecuta el servidor y comienza a escuchar por el puerto `7500`
+  2. __Correr cliente de prueba__: Pide la IP del servidor y permite enviar comandos directamente al servidor
+
 
 ## Mensajes procesados por el servidor
 Los brackets (`{}`) alrededor de un nombre indican que es un valor que devuelve el servidor, sin embargo en el mensaje que envia solo va un valor sin brakcets (Por ejemplo al crear una partida el servidor envia: `S|MATCH|CREATED|1|0`).
