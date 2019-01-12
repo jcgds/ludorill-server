@@ -38,6 +38,7 @@ Mensajes relacionados a la creación de partidas y el progreso de las partidas.
 |Condición|Mensaje|Descripción|
 | ------------- |:-----------------:|-------------|
 | Usuario sin sesion iniciada |`S\|ERROR\|NEEDS_LOGIN`| El cliente debe iniciar sesion para poder ejecutar la accion |
+| Partida cerrada | `S\|MATCH\|CLOSED\|{matchId}`| Uno de los miembros de la partida se desconecto, entonces cerramos la partida|
 
 ### Crear partida
 Mensaje: `C|MATCH|CREATE|:matchName`
