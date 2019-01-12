@@ -105,11 +105,14 @@ namespace ludorill_server_core
 
                 currentPiece.Move(movimientos);
 
+                // Manejo de colisiones
+                /*
                 int[] collision = pieceInCell(currentPiece.currentPosition, currentPiece.color);
                 if (collision != null)
                 {                
                     piecesToReturnHome.Enqueue(collision);
                 }
+                */
             }
         }
 
