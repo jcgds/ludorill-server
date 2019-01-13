@@ -298,7 +298,7 @@ namespace ludorill_server_core
                                     }
                                     break;
 
-                                // C|MATCH|PLAY|{ROLL | SELECT_PIECE}
+                                // C|MATCH|PLAY|{ROLL | SELECT_PIECE | SEND_MESSAGE}
                                 case "PLAY":
                                     try
                                     {
@@ -366,6 +366,12 @@ namespace ludorill_server_core
                                                     Console.WriteLine("Pieza no puede ser movida");
                                                     Broadcast("S|ERROR|UNMOVABLE_PIECE", source);
                                                 }
+                                                break;
+
+                                            case "SEND_MESSAGE":
+                                                string mensaje = string.Format("S|MATCH|PLAY|RECEIVED_MESSAGE|{0}", Convert.ToString(split[4]));
+                                                Console.WriteLine("Mensaje de la partida: " + mensaje);
+                                                Broadcast(mensaje, match.GetPlayers());
                                                 break;
                                         }
                                     }
